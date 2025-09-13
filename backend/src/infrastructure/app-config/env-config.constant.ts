@@ -1,0 +1,19 @@
+export const EnvConfigConstant = {
+  // Application
+  NODE_ENV: 'NODE_ENV',
+  PORT: 'PORT',
+  
+  // Database
+  DB_HOST: 'POSTGRES_HOST',
+  DB_PORT: 'POSTGRES_PORT',
+  DB_USERNAME: 'POSTGRES_USER',
+  DB_PASSWORD: 'POSTGRES_PASSWORD',
+  DB_NAME: 'POSTGRES_DB',
+  
+  // Encryption
+  JWT_SECRET: 'JWT_SECRET',
+  JWT_EXPIRATION_TIME: 'JWT_EXPIRATION_TIME',
+  
+  // Hashing
+  BCRYPT_SALT_ROUNDS: 'BCRYPT_SALT_ROUNDS',
+}
