@@ -19,7 +19,7 @@ export class CreateConversationHandler implements ICommandHandler<CreateConversa
       const output = await this.conversationToOutputMapper.toObject(result);
       return output;
     }catch(error){
-      responseErrorResult(error);
+      return responseErrorResult(error);
     }
   }
 }

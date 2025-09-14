@@ -5,8 +5,6 @@ import { IUserRepository, IUserRepositoryToken } from "src/domain/abstractions/r
 import { ConversationAlreadyExistException } from "src/shared/core/exceptions/conversation-already-exist.exception";
 import { ConversationNotFoundException } from "src/shared/core/exceptions/conversation-not-found.exception";
 import { MinimumUserInConversationConflictException } from "src/shared/core/exceptions/minimum-user-in-conversation-conflict.exception";
-import { UserNotFoundException } from "src/shared/core/exceptions/user-not-found.exception";
-import { ValidationBusinessException } from "src/shared/core/exceptions/validation-business.exception";
 
 export class ConversationManagerService {
   constructor(

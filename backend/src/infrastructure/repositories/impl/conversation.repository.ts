@@ -1,31 +1,45 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UUID } from "crypto";
 import { IConversationRepository } from "src/domain/abstractions/repositories/conversation-repository.interface";
 import { ConversationOrm } from "src/infrastructure/relational-database/orm/conversation.orm";
 import { ConversationTypeEnum } from "src/shared/common/enums/conversations.enum";
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 import { ConversationAdapter } from "../adapter/conversation.adapter";
 import { Conversation } from "src/domain/conversations/conversation";
+import { IUserInConversationRepository, IUserInConversationRepositoryToken } from "src/domain/abstractions/repositories/user-in-conversation-repository.interface";
 
 @Injectable()
 export class ConversationRepository implements IConversationRepository {
   constructor(
     @InjectRepository(ConversationOrm)
     private readonly conversationRepository: Repository<ConversationOrm>,
+    @Inject(IUserInConversationRepositoryToken) 
+    private readonly userInConversationRepository: IUserInConversationRepository,
     private readonly conversationAdapter: ConversationAdapter
   ){}
 
   async findDirectConversation(firstUserId: UUID, secondUserId: UUID): Promise<Conversation | null> {
-    const conversation = await this.conversationRepository
-      .createQueryBuilder('conversation')
-      .innerJoinAndSelect('conversation.users', 'user')
-      .where('conversation.type = :type', { type: ConversationTypeEnum.DIRECT_CHAT })
-      .where('user.id IN (:...userIds)', { userIds: [firstUserId, secondUserId] })
-      .groupBy('conversation.id')
-      .having('COUNT(DISTINCT user.id) = 2')
-      .getOne();
-    return this.conversationAdapter.toEntity(conversation);
+    // const subQuery = this.conversationRepository
+    //   .createQueryBuilder('conversation')
+    //   .innerJoin('conversation.userInConversations', 'uic')
+    //   .innerJoin('uic.user', 'user')
+    //   .where('conversation.type = :type', { type: ConversationTypeEnum.DIRECT_CHAT })
+    //   .andWhere('user.id IN (:...userIds)', { userIds: [firstUserId, secondUserId] })
+    //   .groupBy('conversation.id')
+    //   .having('COUNT(DISTINCT user.id) = 2')
+    //   .select('conversation.id');
+
+    // const conversation = await this.conversationRepository
+    //   .createQueryBuilder('conversation')
+    //   .innerJoinAndSelect('conversation.userInConversations', 'uic')
+    //   .innerJoinAndSelect('uic.user', 'user')
+    //   .where('conversation.id IN (' + subQuery.getQuery() + ')')
+    //   .setParameters(subQuery.getParameters())
+    //   .getOne();
+    
+    // return conversation ? this.conversationAdapter.toEntity(conversation) : null;
+    throw new Error('Method not implemented.');
   }
 
   async save(conversation: Conversation): Promise<Conversation> {
@@ -35,11 +49,13 @@ export class ConversationRepository implements IConversationRepository {
   }
 
   async findByUserId(userId: UUID): Promise<Conversation[]> {
-    const conversationOrms = await this.conversationRepository
-      .createQueryBuilder('conversation')
-      .innerJoinAndSelect('conversation.users', 'user')
-      .where('user.id = :userId', { userId })
-      .getMany();
+    const userInConversations = await this.userInConversationRepository.findAllConversationsOfUser(userId);
+    const conversationIds = userInConversations.map(uic => uic.conversationId);
+    if(conversationIds.length === 0) return [];
+    const conversationOrms = await this.conversationRepository.find({ 
+      where: { id: In(conversationIds) },
+      relations: ['userInConversations', 'userInConversations.user', 'createdBy']
+    });
     return conversationOrms.map(item => this.conversationAdapter.toEntity(item));
   }
 

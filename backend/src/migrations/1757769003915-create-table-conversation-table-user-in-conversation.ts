@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class CreateTableConversationTableUserInConversation1757665595662 implements MigrationInterface {
-    name = 'CreateTableConversationTableUserInConversation1757665595662'
+export class CreateTableConversationTableUserInConversation1757769003915 implements MigrationInterface {
+    name = 'CreateTableConversationTableUserInConversation1757769003915'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`CREATE TABLE "user_in_conversation_orm" ("user_id" uuid NOT NULL, "conversation_id" uuid NOT NULL, CONSTRAINT "PK_0d4ae71afe30747e17bd84ff56b" PRIMARY KEY ("user_id", "conversation_id"))`);

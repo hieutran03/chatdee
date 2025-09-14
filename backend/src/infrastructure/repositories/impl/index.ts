@@ -2,7 +2,7 @@ import { IUserRepositoryToken } from "src/domain/abstractions/repositories/user-
 import { UserRepository } from "./user.repository";
 import { IConversationRepositoryToken } from "src/domain/abstractions/repositories/conversation-repository.interface";
 import { IUserInConversationRepositoryToken } from "src/domain/abstractions/repositories/user-in-conversation-repository.interface";
-import { UserInCovnersationRepository } from "./user-in-conversation.repository";
+import { UserInConversationRepository } from "./user-in-conversation.repository";
 import { ConversationRepository } from "./conversation.repository";
 
 export const repositoryTokens = [
@@ -22,6 +22,6 @@ export const repositories = [
   },
   {
     provide: IUserInConversationRepositoryToken,
-    useClass: UserInCovnersationRepository
+    useClass: UserInConversationRepository
   }
 ]

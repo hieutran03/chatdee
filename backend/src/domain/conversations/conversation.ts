@@ -24,7 +24,6 @@ export class Conversation extends Aggregate<UUID>{
   }
 
   static assign(id?: UUID, title?: string, type?: ConversationTypeEnum, theme?: string, avatar?: string, userInConversations?: UserInConversation[], createdBy?: UUID){
-    console.log(userInConversations)
     const conversation = new Conversation(id, title, type, theme, avatar, userInConversations, createdBy);
     return conversation;
   }
@@ -32,7 +31,6 @@ export class Conversation extends Aggregate<UUID>{
   static create(creatorId: UUID, allUserIds: UUID[], title?: string, theme?: string, avatar?: string){
     const conversationId = uuidv4() as UUID;
     const userInConversation = allUserIds.map(userId => UserInConversation.create(conversationId, userId));
-    console.log(userInConversation)
     if(allUserIds.length === 2 )
       return this.createDirectChat(conversationId, userInConversation, theme, creatorId);
     else
@@ -47,7 +45,6 @@ export class Conversation extends Aggregate<UUID>{
 
   private static createGroupChat(conversationId: UUID, userInConversation?: UserInConversation[], title?: string, theme?: string, avatar?: string, creatorId?: UUID){
     const type = ConversationTypeEnum.GROUP_CHAT;
-    console.log(userInConversation)
     const conversation = Conversation.assign(conversationId, title, type, theme, avatar, userInConversation, creatorId);
     return conversation;
   }

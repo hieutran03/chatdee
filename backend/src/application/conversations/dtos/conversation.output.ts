@@ -1,5 +1,6 @@
 import { UUID } from "crypto";
 import { UserOutput } from "src/application/users/dtos/user.output";
+import { User } from "src/domain/users/users";
 import { ConversationTypeEnum } from "src/shared/common/enums/conversations.enum";
 
 export class ConversationOutput {
@@ -15,13 +16,13 @@ export class ConversationOutput {
     type?: ConversationTypeEnum,
     theme?: string,
     avatar?: string,
-    users?: UserOutput[],
+    users?: User[],
   ) {
     this.id = id;
     this.title = title;
     this.type = type;
     this.theme = theme;
     this.avatar = avatar;
-    this.users = users;
+    this.users = users ? users.map(user => new UserOutput(user)) : [];
   }
 }

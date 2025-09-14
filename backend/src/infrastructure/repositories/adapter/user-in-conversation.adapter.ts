@@ -6,15 +6,15 @@ export class UserInConversationAdapter implements IAdapter<UserInConversation, U
   constructor(){}
   toEntity(orm: UserInConversationOrm): UserInConversation{
     return UserInConversation.create(
+      orm.conversationId,
       orm.userId,
-      orm.conversationId
     )
   }
 
   toOrm(entity: UserInConversation): UserInConversationOrm{
     return new UserInConversationOrm({
+      conversationId: entity.conversationId,
       userId: entity.userId,
-      conversationId: entity.conversationId
     })
   }
 }
