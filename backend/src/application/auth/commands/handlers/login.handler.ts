@@ -21,5 +21,4 @@ export class LoginHandler {
       return responseErrorResult(exception); 
     }
   }
-
 }

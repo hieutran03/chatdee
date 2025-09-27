@@ -1,8 +1,8 @@
 import { Inject } from "@nestjs/common";
-import { IUserInConversationRepository } from "src/domain/abstractions/repositories/user-in-conversation-repository.interface";
+import { IUserInConversationRepository } from "src/domain/conversations/repositories/user-in-conversation-repository.interface";
 import { UserInConversation } from "src/domain/conversations/entities/user-in-conversation.entity";
 import { UserInConversationAdapter } from "../adapter/user-in-conversation.adapter";
-import { IAdapter } from "src/application/abstraction/adapter.interface";
+import { IAdapter } from "src/shared/common/interfaces/adapter.interface";
 import { UserInConversationOrm } from "src/infrastructure/relational-database/orm/user-in-conversation.orm";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
@@ -15,6 +15,13 @@ export class UserInConversationRepository implements IUserInConversationReposito
     @InjectRepository(UserInConversationOrm)
     private readonly userInConversationRepository: Repository<UserInConversationOrm>,
   ){}
+  async findParticipant(userId: UUID, conversationId: UUID): Promise<UserInConversation> {
+    const userInConversationOrm = await this.userInConversationRepository.findOne({
+      where: { userId, conversationId },
+    });
+    return userInConversationOrm ? this.userInConversationAdapter.toEntity(userInConversationOrm) : null;
+  }
+  
   async findUserInConversations( conversationId: UUID): Promise<UserInConversation[]> {
     const userInConversationOrms = await this.userInConversationRepository.find({
       where: { conversationId },
@@ -26,5 +33,20 @@ export class UserInConversationRepository implements IUserInConversationReposito
       where: { userId },
     });
     return userInConversationOrms.map(orm => this.userInConversationAdapter.toEntity(orm));
+  }
+
+  async addParticipant(conversationId: UUID, userId: UUID): Promise<void> {
+    const userInConversationOrm = this.userInConversationAdapter.toOrm(
+      UserInConversation.create(conversationId, userId)
+    );
+    await this.userInConversationRepository.save(userInConversationOrm);
+  }
+
+  async removeParticipant(conversationId: UUID, userId: UUID): Promise<void> {
+    await this.userInConversationRepository.delete({ conversationId, userId });
+  }
+
+  async removeAllParticipants(conversationId: UUID): Promise<void> {
+    await this.userInConversationRepository.delete({ conversationId });
   }
 }

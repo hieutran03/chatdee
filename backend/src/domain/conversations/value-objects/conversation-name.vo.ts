@@ -1,4 +1,4 @@
-import { ValueObject } from "src/domain/abstractions/primitives/value-object";
+import { ValueObject } from "src/shared/libs/ddd/value-object";
 
 export class ConversationTitleVO extends ValueObject {
   constructor(public readonly value: string) {

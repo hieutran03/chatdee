@@ -1,6 +1,6 @@
 import { HttpAdapterHost, NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { HttpExceptionFilter } from './shared/core/filters/http-exception.filter';
+// import { HttpExceptionFilter } from './shared/core/filters/http-exception.filter';
 import { GlobalExceptionFilter } from './shared/core/filters/global-exception.filter';
 import {
   initializeTransactionalContext,
@@ -10,12 +10,14 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ResponseStatusInterceptor } from './shared/core/interceptors/response.interceptor';
 import { ValidationPipe } from '@nestjs/common';
 import { ValidationError } from 'class-validator';
-import { ValidationPipeException } from './shared/core/exceptions/validation.exception';
+import { ValidationPipeException } from './shared/core/exceptions/core/presentation.exception';
 import { AppConfigService } from './infrastructure/app-config/services/app-config.service';
 import { AppConfigEnum } from './infrastructure/app-config/enums/app-config.enum';
 import { setSaltRounds } from './shared/core/utils/password.util';
 import { JwtAuthGuard } from './application/auth/guards/jwt-auth.guard';
 import { RoleGuard } from './application/auth/guards/role.guard';
+import { HttpExceptionFilter } from './shared/core/filters/http-exception.filter';
+import { WebSocketExceptionFilter } from './shared/core/filters/ws-exception.filter';
 
 async function bootstrap() {
   initializeTransactionalContext({
@@ -33,6 +35,7 @@ async function bootstrap() {
   app.useGlobalFilters(
     new GlobalExceptionFilter(httpAdapter),
     new HttpExceptionFilter(httpAdapter),
+    // new WebSocketExceptionFilter(),
   );
   app.useGlobalInterceptors(new ResponseStatusInterceptor());
 

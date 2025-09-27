@@ -2,17 +2,16 @@ import { Injectable } from '@nestjs/common';
 import {
   IUserRepository,
   IUserRepositoryToken,
-} from 'src/domain/abstractions/repositories/user-repository.interface';
+} from 'src/domain/users/repositories/user-repository.interface';
 import { Inject } from '@nestjs/common';
 import { AppJwtService } from 'src/infrastructure/utils/services/app-jwt.service';
-import { UUID } from 'crypto';
-import { AccountNotFoundException } from 'src/shared/core/exceptions/account-not-found.exception';
-import { InvalidCredentialException } from 'src/shared/core/exceptions/invallid-credential.exception';
 import { IUserToSign } from '../interfaces/user-to-sign.interface';
 import { User } from 'src/domain/users/users';
 import { comparePassword } from 'src/shared/core/utils/password.util';
 import { LoginOutput } from 'src/application/auth/dtos/login.output';
 import { GetProfileOutput } from 'src/application/auth/dtos/get-profile.output';
+import { AccountNotFoundException } from 'src/shared/core/exceptions/not-found/account-not-found.exception';
+import { InvalidCredentialsException } from 'src/shared/core/exceptions/auth/invallid-credential-exception';
 
 @Injectable()
 export class AuthService {
@@ -24,7 +23,7 @@ export class AuthService {
 
   async getCredential(email: string, password: string): Promise<LoginOutput> {
     const user = await this.checkValidEmail(email);
-    await this.checkCredential(user, password);
+    await this.checkPassword(user.hashedPassword, password);
     const accessToken = await this.generateAccessToken(user);
     return { accessToken };
   }
@@ -42,16 +41,16 @@ export class AuthService {
     return user;
   }
 
-  private async checkCredential(user: User, password: string) {
-    const isValid = await comparePassword(password, user.hashedPassword);
-    if(!isValid) throw new InvalidCredentialException();
-
-    return user;
+  private async checkPassword(hashedPassword: string, password: string) {
+    const isValid = await comparePassword(password, hashedPassword);
+    if(!isValid) throw new InvalidCredentialsException();
+    return true
   }
 
   private async generateAccessToken(user: User) {
     const userToSign: IUserToSign = {
-      id: user._id,
+      id: user.id,
+      name: user.name,
       email: user.email,
       role: user.role,
       bornYear: user.bornYear,

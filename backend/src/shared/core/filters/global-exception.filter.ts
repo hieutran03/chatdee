@@ -28,10 +28,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       exception instanceof HttpException
         ? exception.message
         : 'Internal server error';
-    
-    // const traceId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-    // Log the exception with context
     if (exception instanceof Error) {
       this.logger.error(
         `Error on ${request.method} ${request.url}`,
@@ -51,10 +48,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           : 'InternalServerError',
       statusCode: status,
       message: message,
-      // path: request.url,
-      // method: request.method,
-      // traceId: traceId,
-      // timestamp: new Date().toISOString(),
       ...(isDevelopment && {
         stack: exception instanceof Error ? exception.stack : undefined,
       }),

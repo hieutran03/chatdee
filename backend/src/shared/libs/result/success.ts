@@ -1,28 +1,29 @@
 import { StatusCodeEnum } from "src/shared/common/enums/error-code.enum";
 import { Result } from "./result";
+import { MessageSuccessEnum } from "src/shared/common/enums/message-success.enum";
 
 export class SuccessResult<T> extends Result{
   private constructor(
     public readonly statusCode: StatusCodeEnum = StatusCodeEnum.OK,
     public readonly data: T,
-    public readonly message?: string,
+    message?: string,
   ) {
-    super(true, statusCode);
+    super(true, statusCode, message);
   }
 
-  public static responseOk<T>(data: T) {
+  public static responseOk<T>(data?: T) {
     return new SuccessResult<T>(
       StatusCodeEnum.OK, 
       data,
-      'Data fetched successfully'
+      MessageSuccessEnum.OK
     );
   }
 
-  public static responseCreated<T>(data: T) {
+  public static responseCreated<T>(data?: T) {
     return new SuccessResult<T>(
       StatusCodeEnum.CREATED, 
       data,
-      'Resource created successfully'
+      MessageSuccessEnum.CREATED
     );
   }
 
@@ -30,15 +31,15 @@ export class SuccessResult<T> extends Result{
     return new SuccessResult<T>(
       StatusCodeEnum.OK,
       data,
-      'Data updated successfully'
+      MessageSuccessEnum.UPDATED
     );
   }
 
-  public static responseDeleted<T>() {
+  public static responseDeleted<T>(data?: T) {
     return new SuccessResult<T>(
       StatusCodeEnum.OK,
-      undefined,
-      'Data deleted successfully'
+      data,
+      MessageSuccessEnum.DELETED
     );
   }
 
@@ -46,7 +47,7 @@ export class SuccessResult<T> extends Result{
     return new SuccessResult<void>(
       StatusCodeEnum.NO_CONTENT, 
       undefined,
-      'No content'
+      MessageSuccessEnum.NO_CONTENT
     );
   }
 
@@ -54,7 +55,7 @@ export class SuccessResult<T> extends Result{
     return new SuccessResult<T>(
       StatusCodeEnum.ACCEPTED, 
       data,
-      'Request accepted'
+      MessageSuccessEnum.ACCEPTED
     );
   }
 }

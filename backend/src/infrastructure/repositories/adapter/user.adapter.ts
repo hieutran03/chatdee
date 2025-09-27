@@ -1,4 +1,4 @@
-import { IAdapter } from "src/application/abstraction/adapter.interface";
+import { IAdapter } from "src/shared/common/interfaces/adapter.interface";
 import { User } from "src/domain/users/users";
 import { UserOrm } from "src/infrastructure/relational-database/orm/user.orm";
 

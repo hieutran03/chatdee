@@ -1,7 +1,7 @@
 import { Conversation } from "src/domain/conversations/conversation";
 import { ConversationOrm } from "src/infrastructure/relational-database/orm/conversation.orm";
 import { Inject, Injectable } from "@nestjs/common";
-import { IAdapter } from "src/application/abstraction/adapter.interface";
+import { IAdapter } from "src/shared/common/interfaces/adapter.interface";
 import { UserInConversationOrm } from "src/infrastructure/relational-database/orm/user-in-conversation.orm";
 import { UserInConversation } from "src/domain/conversations/entities/user-in-conversation.entity";
 import { UserInConversationAdapter } from "./user-in-conversation.adapter";
@@ -25,7 +25,7 @@ export class ConversationAdapter implements IAdapter<Conversation, ConversationO
   }
   toOrm(entity: Conversation): ConversationOrm {
     return new ConversationOrm({
-      id: entity?._id,
+      id: entity?.id,
       title: entity?.title?.value,
       type: entity?.type,
       theme: entity?.theme,
@@ -33,5 +33,17 @@ export class ConversationAdapter implements IAdapter<Conversation, ConversationO
       userInConversations: entity?.userInConversations?.map(uic => this.userInConversationAdapter.toOrm(uic)),
       createdById: entity?.createdBy
     })
+  }
+  async toOrmAsync(entity: Conversation): Promise<ConversationOrm> {
+    const userInConversationOrms = await Promise.all(entity?.userInConversations?.map(uic => this.userInConversationAdapter.toOrmAsync(uic)) || []);
+    return new ConversationOrm({
+      id: entity?.id,
+      title: entity?.title?.value,
+      type: entity?.type,
+      theme: entity?.theme,
+      avatar: entity?.avatar,
+      userInConversations: userInConversationOrms,
+      createdById: entity?.createdBy
+    });
   }
 }

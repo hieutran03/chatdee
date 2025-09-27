@@ -1,5 +1,5 @@
 import { UUID } from 'crypto';
-import { Entity } from 'src/domain/abstractions/primitives/entity';
+import { Entity } from 'src/shared/libs/ddd/entity';
 
 export class UserInConversation extends Entity {
   private _conversationId: UUID;

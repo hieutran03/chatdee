@@ -4,8 +4,9 @@ import { LoginInput } from "../../../application/auth/dtos/login.input";
 import { LoginCommand } from "src/application/auth/commands/login.command";
 import { GetProfileQuery } from "src/application/auth/queries/get-profile.query";
 import { UserDecorator } from "src/shared/core/decorators/user.decorator";
-import { User } from "src/domain/users/users";
 import { ApiDecorator } from "src/shared/core/decorators/api.decorator";
+import { AuthResponseSwagger, AuthOperation } from "../swagger/auth-response.swagger";
+import { IUserToSign } from "src/application/auth/interfaces/user-to-sign.interface";
 
 @Controller('auth')
 export class AuthController {
@@ -14,6 +15,8 @@ export class AuthController {
     private readonly queryBus: QueryBus
   ) {}
 
+
+  @AuthResponseSwagger(AuthOperation.login)
   @ApiDecorator({ isPublic: true })
   @Post('login')
   async login(@Body() loginInput: LoginInput){
@@ -23,7 +26,7 @@ export class AuthController {
 
   @ApiDecorator({ isPublic: false })
   @Get('profile')
-  async getProfile(@UserDecorator() user: User){
+  async getProfile(@UserDecorator() user: IUserToSign){
     const result = await this.queryBus.execute(new GetProfileQuery(user.email));
     return result;
   }

@@ -3,16 +3,16 @@ import { UUID } from 'crypto';
 import {
   IUserRepository,
   IUserRepositoryToken,
-} from 'src/domain/abstractions/repositories/user-repository.interface';
+} from 'src/domain/users/repositories/user-repository.interface';
 import { User } from 'src/domain/users/users';
 import { CreateUserInput } from 'src/application/users/dtos/create-user.input';
 import { FindAllUsersInput } from 'src/application/users/dtos/find-all-users.input';
 import { FindAllUsersOutput } from 'src/application/users/dtos/find-all-users.output';
 import { UpdateUserInput } from 'src/application/users/dtos/update-user.input';
 import { UserOutput } from 'src/application/users/dtos/user.output';
-import { UserAlreadyExistException } from 'src/shared/core/exceptions/user-already-exists.exception';
-import { UserNotFoundException } from 'src/shared/core/exceptions/user-not-found.exception';
 import { hashPassword } from 'src/shared/core/utils/password.util';
+import { UserNotFoundException } from 'src/shared/core/exceptions/not-found/user-not-found-exception';
+import { UserAlreadyExistException } from 'src/shared/core/exceptions/conflict/user-already-exist.exception';
 
 @Injectable()
 export class UserService {
@@ -33,7 +33,7 @@ export class UserService {
 
   async findUserById(id: UUID) {
     const user = await this.userRepository.findById(id);
-    if (!user) throw new UserNotFoundException(id);
+    if (!user) return null
     return new UserOutput(user);
   }
 
@@ -59,7 +59,7 @@ export class UserService {
 
     user.update(contract);
 
-    await this.userRepository.save(user);
+    await this.userRepository.update(user.id,user);
   }
 
   async deleteUser(userId: UUID) {

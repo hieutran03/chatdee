@@ -5,15 +5,22 @@ import { UserService } from "./users/services/user.service";
 import { AuthService } from "./auth/services/auth.service";
 import { JwtStrategy } from "./auth/strategies/jwt.strategy";
 import { AuthQueryHandlers } from "./auth/queries/handlers";
-import { ConversationMappers } from "./conversations/mappers";
 import { ConversationCommandHandlers } from "./conversations/commands/handlers";
 import { ConversationService } from "./conversations/services/conversation.service";
+import { ConversationQueryHandlers } from "./conversations/queries/handlers";
+import { ConversationEventHandlers } from "./conversations/events";
+import { ChatGateway } from "../presentation/chat/gateways/chat.gateway";
+import { ChatService } from "./chats/services/chat.service";
+import { MessageService } from "./messages/services/message.service";
+import { MessageQueryHandlers } from "./messages/queries";
 
 
 export const Services = [
   AuthService,
   UserService,
-  ConversationService
+  ConversationService,
+  ChatService, 
+  MessageService
 ]
 
 
@@ -24,13 +31,16 @@ export const CommandHandlers = [
 ]
 export const QueryHandlers = [
   ...UserQueryHandlers,
-  ...AuthQueryHandlers
+  ...AuthQueryHandlers,
+  ...ConversationQueryHandlers,
+  ...MessageQueryHandlers
 ]
 
-export const Mappers = [
-  ...ConversationMappers
+export const EventHandlers = [
+  ...ConversationEventHandlers
 ]
 
 export const Others = [
-  JwtStrategy
+  JwtStrategy,
+  ChatGateway
 ]

@@ -1,5 +1,5 @@
 import { UUID } from "crypto";
-import { Aggregate } from "../abstractions/primitives/aggregate";
+import { Aggregate } from "../../shared/libs/ddd/aggregate";
 import { RoleEnum } from "./enums/role.enum";
 import { UpdateUserContract } from "./contracts/update-user.contract";
 

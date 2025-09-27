@@ -1,5 +1,8 @@
+import { UUID } from "crypto";
+
 export interface IUserToSign {
-  id: string;
+  id: UUID;
+  name: string
   email: string;
   role: string;
   bornYear: number;

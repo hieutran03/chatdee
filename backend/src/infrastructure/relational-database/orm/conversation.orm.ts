@@ -1,5 +1,5 @@
 import { ConversationTypeEnum } from "../../../shared/common/enums/conversations.enum";
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, Relation } from "typeorm";
+import { Column, CreateDateColumn, UpdateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, Relation } from "typeorm";
 import { AbstractOrm } from "../abstractions/asbtract.orm";
 import { UUID } from "crypto";
 import { UserOrm } from "./user.orm";
@@ -18,21 +18,24 @@ export class ConversationOrm extends AbstractOrm<ConversationOrm>{
   
   @Column({
     type: 'varchar',
-    length: 100
+    length: 100,
+    nullable: true
   })
   title: string;
   
   @Column({
-    type: 'text'
+    type: 'text',
+    nullable: true
   })
   theme: string;
 
   @Column({
-    type: 'text'
+    type: 'text',
+    nullable: true
   })
   avatar: string;
 
-  @OneToMany(() => UserInConversationOrm, (userInConversation) => userInConversation.conversation, { cascade: true })
+  @OneToMany(() => UserInConversationOrm, (userInConversation) => userInConversation.conversation, { cascade: true, orphanedRowAction: 'delete' })
   userInConversations: UserInConversationOrm[];
 
   @ManyToOne(() => UserOrm)
@@ -46,4 +49,10 @@ export class ConversationOrm extends AbstractOrm<ConversationOrm>{
     type: 'uuid'
   })
   createdById: Relation<UserOrm>['id'];
+
+  @CreateDateColumn({ name: 'created_at', nullable: true })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', nullable: true })
+  updatedAt: Date;
 }
