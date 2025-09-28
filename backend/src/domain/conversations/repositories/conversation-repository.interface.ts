@@ -14,7 +14,6 @@ export interface IConversationRepository {
   findTopUsersAndTotal(conversationId: UUID, limit: number): Promise<ConversationExtraInfoContract>;
   findDirectConversation(firstUserId: string, secondUserId: string): Promise<Conversation>;
   countUsersOfConversation(): Promise<number>;
-  // findById(id: string): Promise<Conversation>;
   findByUserId(userId: string): Promise<Conversation[]>;
   update(id: UUID,conversation: Conversation): Promise<void>;
   delete(id: UUID): Promise<void>;

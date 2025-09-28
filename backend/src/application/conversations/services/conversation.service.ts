@@ -69,8 +69,9 @@ export class ConversationService{
     if(!conversation)
       throw new ConversationNotFoundException(conversationId);
     conversation.addParticipant(addedBy, addedUser);
-    const events = conversation.pullDomainEvents();
-    events.forEach(event => this.eventBus.publish(event));
+    await this.conversationRepository.save(conversation);
+    // const events = conversation.pullDomainEvents();
+    // await Promise.all(events.map(event => this.eventBus.publish(event)));
   }
 
   async removeFromConversation(removedBy: UUID, conversationId: UUID, removedUser: UUID){
@@ -78,8 +79,9 @@ export class ConversationService{
     if(!conversation)
       throw new ConversationNotFoundException(conversationId);
     conversation.removeParticipant(removedBy, removedUser);
-    const events = conversation.pullDomainEvents();
-    events.forEach(event => this.eventBus.publish(event)); // async event
+    await this.conversationRepository.save(conversation);
+    // const events = conversation.pullDomainEvents();
+    // events.forEach(event => this.eventBus.publish(event));
   }
 
   private async removeDuplicatedUserIds(userIds: UUID[]): Promise<UUID[]>{

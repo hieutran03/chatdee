@@ -63,6 +63,7 @@ export class Conversation extends Aggregate<UUID>{
     if(this.checkUserAlreadyInConversation(addedUser)){
       throw new UserAlreadyInConversationException(addedUser);
     }
+    this._userInConversations.push(UserInConversation.create(this.id, addedUser));
     this.addDomainEvent(new AddParticipantEvent(this.id, addedUser));
   }
 
@@ -70,6 +71,7 @@ export class Conversation extends Aggregate<UUID>{
     if(!this.canRemoveParticipant(removedBy)){
       throw new NotHavePermissionInConversationException(removedBy, this.id);
     }
+    this._userInConversations = this._userInConversations.filter(uic => uic.userId !== removedUser);
     this.addDomainEvent(new RemoveParticipantEvent(this.id, removedUser));
   }
 

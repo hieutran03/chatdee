@@ -23,7 +23,7 @@ export class UserInConversationOrm extends AbstractOrm<UserInConversationOrm>{
   })
   user: UserOrm;
 
-  @ManyToOne(() => ConversationOrm)
+  @ManyToOne(() => ConversationOrm, (conversation) => conversation.userInConversations, { onDelete: 'CASCADE'})
   @JoinColumn({
     name: 'conversation_id'
   })

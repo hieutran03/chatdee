@@ -81,7 +81,7 @@ export class ConversationRepository implements IConversationRepository {
   }
 
   async save(conversation: Conversation): Promise<Conversation> {
-    const conversationOrm = this.conversationRepository.create(this.conversationAdapter.toOrm(conversation));
+    const conversationOrm = this.conversationAdapter.toOrm(conversation);
     await this.conversationRepository.save(conversationOrm);
     return this.conversationAdapter.toEntity(conversationOrm);
   }
@@ -106,7 +106,6 @@ export class ConversationRepository implements IConversationRepository {
   }
 
    async findById(id: UUID): Promise<Conversation> {
-    console.log('Finding conversation by ID:', id);
     const conversationOrm = await this.conversationRepository.findOne({ 
       where: { id },
       relations: ['userInConversations']

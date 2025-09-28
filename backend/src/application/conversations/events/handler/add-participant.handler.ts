@@ -12,8 +12,8 @@ export class AddParticipantHandler {
   ) {}
 
   @Transactional()
-  handle(event: AddParticipantEvent) {
+  async handle(event: AddParticipantEvent) {
     const { conversationId, userId } = event;
-    return this.userInConversationRepository.addParticipant(conversationId, userId);
+    await this.userInConversationRepository.addParticipant(conversationId, userId);
   }
 }

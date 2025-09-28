@@ -20,7 +20,7 @@ export class ConversationAdapter implements IAdapter<Conversation, ConversationO
       orm.theme,
       orm.avatar,
       userInConversations,
-      orm.createdBy?.id
+      orm.createdById
     )
   }
   toOrm(entity: Conversation): ConversationOrm {
