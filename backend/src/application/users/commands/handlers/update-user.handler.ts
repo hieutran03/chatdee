@@ -11,7 +11,6 @@ export class UpdateUserHandler implements ICommandHandler<UpdateUserCommand>{
     private readonly userService: UserService,
   ){}
 
-  @Transactional()
   async execute({ payload, userId }: UpdateUserCommand) {
     try{
       await this.userService.updateUser(userId, payload);

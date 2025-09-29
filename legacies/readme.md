@@ -1,1 +1,0 @@
-Đây là folder chứa các mã nguồn cũ đã bị xóa bỏ trong quá trình refactor nhưng vẫn còn giá trị tham khảo.

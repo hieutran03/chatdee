@@ -40,15 +40,15 @@ export class ConversationOrm extends AbstractOrm<ConversationOrm>{
 
   @ManyToOne(() => UserOrm)
   @JoinColumn({
-    name: 'created_by'
+    name: 'owner',
   })
-  createdBy: UserOrm;
+  owner: UserOrm;
 
   @Column({
-    name: 'created_by',
+    name: 'owner',
     type: 'uuid'
   })
-  createdById: Relation<UserOrm>['id'];
+  ownerId: Relation<UserOrm>['id'];
 
   @CreateDateColumn({ name: 'created_at', nullable: true })
   createdAt: Date;

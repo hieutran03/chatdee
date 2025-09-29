@@ -1,7 +1,8 @@
-import { Entity, JoinColumn, ManyToOne, PrimaryColumn, Relation } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn, Relation } from "typeorm";
 import { UserOrm } from "./user.orm";
 import { ConversationOrm } from "./conversation.orm";
 import { AbstractOrm } from "../abstractions/asbtract.orm";
+import { ConversationRoleEnum } from "src/shared/common/enums/conversation-role.enum";
 
 @Entity({ name: 'user_in_conversation_orm' })
 export class UserInConversationOrm extends AbstractOrm<UserInConversationOrm>{
@@ -23,9 +24,16 @@ export class UserInConversationOrm extends AbstractOrm<UserInConversationOrm>{
   })
   user: UserOrm;
 
-  @ManyToOne(() => ConversationOrm, (conversation) => conversation.userInConversations, { onDelete: 'CASCADE'})
+  @ManyToOne(() => ConversationOrm, (conversation) => conversation.userInConversations, { onDelete: 'CASCADE', orphanedRowAction: 'delete' })
   @JoinColumn({
     name: 'conversation_id'
   })
-  conversation: ConversationOrm
+  conversation: ConversationOrm;
+
+  @Column({
+    type: 'enum',
+    enum: ConversationRoleEnum,
+    default: ConversationRoleEnum.MEMBER
+  })
+  role: ConversationRoleEnum;
 }

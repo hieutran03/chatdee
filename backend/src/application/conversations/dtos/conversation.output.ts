@@ -23,7 +23,7 @@ export class ConversationOutput {
   avatar?: string;
 
   @ApiProperty({ required: false })
-  createdBy?: UserOutput;
+  owner?: UserOutput;
 
   @ApiProperty({ required: false })
   createdAt?: Date;
@@ -73,7 +73,7 @@ export class ConversationOutput {
     this.avatar = conversation.avatar;
     this.topUsers = topUsers ? topUsers.map((user) => new UserOutput(user)) : undefined;
     if(conversation instanceof ConversationDetailContract){
-      this.createdBy = new UserOutput(conversation.createdByUser);
+      this.owner = new UserOutput(conversation.ownerUser);
       this.members = conversation.members
         ? conversation.members.map((user) => new UserOutput(user))
         : [];

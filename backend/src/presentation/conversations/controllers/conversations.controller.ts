@@ -75,8 +75,8 @@ export class ConversationController {
 
   @ApiDecorator({ isPublic: false })
   @Delete('/:conversationId')
-  async deleteConversation(@Param('conversationId') conversationId: UUID) {
-    return await this.commandBus.execute(new DeleteConversationCommand(conversationId));
+  async deleteConversation(@Param('conversationId') conversationId: UUID, @UserDecorator() user: IUserToSign) {
+    return await this.commandBus.execute(new DeleteConversationCommand(user.id, conversationId));
   }
 
   @ConversationResponseSwagger(ConversationOperation.addMember)

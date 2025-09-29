@@ -58,7 +58,6 @@ export class ConversationRepository implements IConversationRepository {
       .where('conversation.type = :type', { type: ConversationTypeEnum.DIRECT_CHAT })
       .andWhere('uic.userId IN (:...userIds)', { userIds: [firstUserId, secondUserId] })
       .getOne();
-    console.log('Direct conversation ORM:', conversationOrm);
     return conversationOrm ? this.conversationAdapter.toEntity(conversationOrm) : null;
   }
 
@@ -89,7 +88,7 @@ export class ConversationRepository implements IConversationRepository {
   async findByIdDetails(id: UUID): Promise<ConversationDetailContract> {
     const conversationOrm = await this.conversationRepository.findOne({ 
       where: { id },
-      relations: ['userInConversations', 'createdBy']
+      relations: ['userInConversations', 'owner']
     });
     if(!conversationOrm)
       return null;
@@ -101,7 +100,7 @@ export class ConversationRepository implements IConversationRepository {
       conversationOrm.createdAt, 
       conversationOrm.updatedAt, 
       members.map(member => this.userAdapter.toEntity(member)),
-      this.userAdapter.toEntity(conversationOrm.createdBy)
+      this.userAdapter.toEntity(conversationOrm.owner)
     );
   }
 

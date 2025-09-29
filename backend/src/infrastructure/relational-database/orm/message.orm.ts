@@ -3,12 +3,14 @@ import { AbstractOrm } from "../abstractions/asbtract.orm";
 import { UUID } from "crypto";
 import { UserOrm } from "./user.orm";
 import { ConversationOrm } from "./conversation.orm";
+import { ChatActionEnum } from "../../../shared/common/enums/chat-action.enum";
 
 export enum MessageTypeEnum {
   TEXT = 'text',
   IMAGE = 'image',
   VIDEO = 'video',
-  FILE = 'file'
+  FILE = 'file',
+  NOTIFICATION = 'notification'
 }
 
 @Entity({ name: 'messages' })
@@ -18,7 +20,7 @@ export class MessageOrm extends AbstractOrm<MessageOrm>{
 
   @Column({
     name: 'user_id',
-    type: 'uuid'
+    type: 'uuid',
   })
   userId: Relation<UserOrm>['id'];
 
@@ -33,14 +35,13 @@ export class MessageOrm extends AbstractOrm<MessageOrm>{
   conversationId: Relation<ConversationOrm>['id'];
 
   @JoinColumn({ name: 'conversation_id' })
-  @ManyToOne(() => ConversationOrm)
-  conversation: Relation<ConversationOrm>;
+  @ManyToOne(() => ConversationOrm, (conversation) => conversation.id, { onDelete: 'CASCADE' })
+  conversation: ConversationOrm;
 
   @Column({
     type: 'text'
   })
   content: string;
-
 
   // @Column({
   //   type: 'text',
@@ -54,6 +55,13 @@ export class MessageOrm extends AbstractOrm<MessageOrm>{
     default: MessageTypeEnum.TEXT
   })
   type: MessageTypeEnum;
+
+  @Column({
+    type: 'enum',
+    enum: ChatActionEnum,
+    default: ChatActionEnum.SEND_MESSAGE
+  })
+  action: ChatActionEnum;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

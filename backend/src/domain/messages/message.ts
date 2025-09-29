@@ -1,5 +1,6 @@
 import { UUID } from "crypto";
 import { MessageTypeEnum } from "src/infrastructure/relational-database/orm/message.orm";
+import { ChatActionEnum } from "src/shared/common/enums/chat-action.enum";
 import { Aggregate } from "src/shared/libs/ddd/aggregate";
 
 export class Message extends Aggregate<UUID>{
@@ -9,24 +10,26 @@ export class Message extends Aggregate<UUID>{
   _type: MessageTypeEnum;
   _createdAt: Date;
   _updatedAt: Date;
+  _action: ChatActionEnum;
 
-  protected constructor(id: UUID, userId: UUID, conversationId: UUID, content: string, type: MessageTypeEnum, createdAt?: Date, updatedAt?: Date) {
+  protected constructor(id: UUID, userId: UUID, conversationId: UUID, content: string, type: MessageTypeEnum, action: ChatActionEnum, createdAt?: Date, updatedAt?: Date) {
     super(id);
     this._userId = userId;
     this._conversationId = conversationId;
     this._content = content;
     this._type = type;
+    this._action = action;
     this._createdAt = createdAt;
     this._updatedAt = updatedAt;
   }
 
-  static assign(id: UUID, userId: UUID, conversationId: UUID, content: string, type: MessageTypeEnum, createdAt: Date, updatedAt: Date){
-    return new Message(id, userId, conversationId, content, type, createdAt, updatedAt);
+  static assign(id: UUID, userId: UUID, conversationId: UUID, content: string, type: MessageTypeEnum, action: ChatActionEnum, createdAt: Date, updatedAt: Date){
+    return new Message(id, userId, conversationId, content, type, action, createdAt, updatedAt);
   }
 
-  static create(userId: UUID, conversationId: UUID, content: string, type: MessageTypeEnum){
+  static create(userId: UUID, conversationId: UUID, content: string, type: MessageTypeEnum, action: ChatActionEnum){
     const id = crypto.randomUUID();
-    return new Message(id, userId, conversationId, content, type);
+    return new Message(id, userId, conversationId, content, type, action);
   }
 
   setUserId(userId: UUID){
@@ -43,6 +46,10 @@ export class Message extends Aggregate<UUID>{
 
   setType(type: MessageTypeEnum){
     this._type = type;
+  }
+
+  setAction(action: ChatActionEnum){
+    this._action = action;
   }
 
   setCreatedAt(createdAt: Date){
@@ -67,6 +74,10 @@ export class Message extends Aggregate<UUID>{
 
   get type(): MessageTypeEnum {
     return this._type;
+  }
+
+  get action(): ChatActionEnum {
+    return this._action;
   }
 
   get createdAt(): Date {

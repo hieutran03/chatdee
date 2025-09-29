@@ -6,7 +6,7 @@ import { MinimumUsersInConversationException } from "src/shared/core/exceptions/
 import { DirectConversationAlreadyExistsException } from "src/shared/core/exceptions/conflict/direct-conversation-already-exist.exception";
 import { DirectConversationNotFoundException } from "src/shared/core/exceptions/not-found/direction-not-found.exception";
 
-export class ConversationManagerService {
+export class CreateConversationDomainService {
   constructor(
     @Inject(IConversationRepositoryToken)
     private readonly conversationRepository: IConversationRepository,
@@ -36,7 +36,6 @@ export class ConversationManagerService {
     const notFoundUserIds = userIds.filter(id => !foundUserIds.has(id));
     if (notFoundUserIds.length > 0) {
     }
-    
   }
 
   private async validateDirectConversationNotExist(firstUserId: UUID, secondUserId: UUID) {

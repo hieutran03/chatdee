@@ -17,7 +17,8 @@
     "migrate:generate:dev": "npx dotenv -e ./.env.development -- yarn typeorm:cli -d ./src/migrations/configs migration:generate",
     "migrate:create:dev": "npx dotenv -e ./.env.development -- yarn typeorm:cli -d ./src/migrations/configs migration:create",
     "migrate:run:dev": "npx dotenv -e ./.env.development -- yarn typeorm:cli migration:run -d ./src/migrations/configs",
-    "migrate:revert:dev": "npx dotenv -e ./.env.development -- yarn typeorm:cli migration:revert -d ./src/migrations/configs"
+    "migrate:revert:dev": "npx dotenv -e ./.env.development -- yarn typeorm:cli migration:revert -d ./src/migrations/configs",
+    "migrate:show:dev": "npx dotenv -e ./.env.development -- yarn typeorm:cli migration:show -d ./src/migrations/configs"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

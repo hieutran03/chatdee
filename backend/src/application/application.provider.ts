@@ -8,11 +8,10 @@ import { AuthQueryHandlers } from "./auth/queries/handlers";
 import { ConversationCommandHandlers } from "./conversations/commands/handlers";
 import { ConversationService } from "./conversations/services/conversation.service";
 import { ConversationQueryHandlers } from "./conversations/queries/handlers";
-import { ConversationEventHandlers } from "./conversations/events";
-import { ChatGateway } from "../presentation/chat/gateways/chat.gateway";
 import { ChatService } from "./chats/services/chat.service";
 import { MessageService } from "./messages/services/message.service";
 import { MessageQueryHandlers } from "./messages/queries";
+import { ChatEventsHandlers } from "./chats/events";
 
 
 export const Services = [
@@ -37,10 +36,9 @@ export const QueryHandlers = [
 ]
 
 export const EventHandlers = [
-  ...ConversationEventHandlers
+  ...ChatEventsHandlers
 ]
 
 export const Others = [
   JwtStrategy,
-  ChatGateway
 ]

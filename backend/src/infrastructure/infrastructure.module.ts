@@ -7,6 +7,8 @@ import { RepositoryModule } from './repositories/repository.module';
 import { AppConfigModule } from './app-config/app-config.module';
 import { AppJwtModule } from './utils/app-jwt.module';
 import { PassportModule } from '@nestjs/passport/dist/passport.module';
+import { WebsocketModule } from './websocket/websocket.module';
+import { NotifierModule } from './notifier/notifier.module';
 
 @Global()
 @Module({
@@ -18,7 +20,8 @@ import { PassportModule } from '@nestjs/passport/dist/passport.module';
     AppConfigModule,
     AppJwtModule,
     PassportModule,
-
+    WebsocketModule,
+    NotifierModule
   ],
   exports: [
     TypeOrmModule,
@@ -28,6 +31,8 @@ import { PassportModule } from '@nestjs/passport/dist/passport.module';
     AppConfigModule,
     AppJwtModule,
     PassportModule,
+    WebsocketModule,
+    NotifierModule
   ],
 })
 export class InfrastructureModule {}

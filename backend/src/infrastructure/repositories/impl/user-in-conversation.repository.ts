@@ -34,19 +34,4 @@ export class UserInConversationRepository implements IUserInConversationReposito
     });
     return userInConversationOrms.map(orm => this.userInConversationAdapter.toEntity(orm));
   }
-
-  async addParticipant(conversationId: UUID, userId: UUID): Promise<void> {
-    const userInConversationOrm = this.userInConversationAdapter.toOrm(
-      UserInConversation.create(conversationId, userId)
-    );
-    await this.userInConversationRepository.save(userInConversationOrm);
-  }
-
-  async removeParticipant(conversationId: UUID, userId: UUID): Promise<void> {
-    await this.userInConversationRepository.delete({ conversationId, userId });
-  }
-
-  async removeAllParticipants(conversationId: UUID): Promise<void> {
-    await this.userInConversationRepository.delete({ conversationId });
-  }
 }

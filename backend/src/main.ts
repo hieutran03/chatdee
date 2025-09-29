@@ -17,7 +17,6 @@ import { setSaltRounds } from './shared/core/utils/password.util';
 import { JwtAuthGuard } from './application/auth/guards/jwt-auth.guard';
 import { RoleGuard } from './application/auth/guards/role.guard';
 import { HttpExceptionFilter } from './shared/core/filters/http-exception.filter';
-import { WebSocketExceptionFilter } from './shared/core/filters/ws-exception.filter';
 
 async function bootstrap() {
   initializeTransactionalContext({

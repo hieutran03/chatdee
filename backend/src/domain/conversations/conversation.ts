@@ -10,6 +10,9 @@ import { AddParticipantEvent } from "./events/add-participant.event";
 import { RemoveParticipantEvent } from "./events/remove-participant.event";
 import { UpdateConversationContract } from "./contracts/update-conversation.contract";
 import { NotHavePermissionInConversationException } from "src/shared/core/exceptions/forbidden/not-have-permission-in-conversation.exception";
+import { UserNotInConversationException } from "src/shared/core/exceptions/forbidden/user-not-in-conversation.exception";
+import { ConversationRoleEnum } from "src/shared/common/enums/conversation-role.enum";
+import { DeleteConversationEvent } from "./events/delete-conversation.event";
 
 export class Conversation extends Aggregate<UUID>{
   private _title: ConversationTitleVO;
@@ -17,20 +20,20 @@ export class Conversation extends Aggregate<UUID>{
   private _theme: string;
   private _avatar: string;
   private _userInConversations: UserInConversation[];
-  private _createdBy: UUID;
+  private _owner: UUID;
 
-  protected constructor(id?: UUID, title?: string, type?: ConversationTypeEnum, theme?: string, avatar?: string, userInConversation?: UserInConversation[], createdBy?: UUID){
+  protected constructor(id?: UUID, title?: string, type?: ConversationTypeEnum, theme?: string, avatar?: string, userInConversation?: UserInConversation[], owner?: UUID){
     super(id);
     this.setTitle(title);
     this.setType(type);
     this.setTheme(theme);
     this.setAvatar(avatar);
     this.setUserInConversations(userInConversation);
-    this.setCreatedBy(createdBy);
+    this.setOwner(owner);
   }
 
-  static assign(id?: UUID, title?: string, type?: ConversationTypeEnum, theme?: string, avatar?: string, userInConversations?: UserInConversation[], createdBy?: UUID){
-    const conversation = new Conversation(id, title, type, theme, avatar, userInConversations, createdBy);
+  static assign(id?: UUID, title?: string, type?: ConversationTypeEnum, theme?: string, avatar?: string, userInConversations?: UserInConversation[], owner?: UUID){
+    const conversation = new Conversation(id, title, type, theme, avatar, userInConversations, owner);
     return conversation;
   }
 
@@ -48,11 +51,13 @@ export class Conversation extends Aggregate<UUID>{
     if(contract.theme) this.setTheme(contract.theme);
     if(contract.avatar) this.setAvatar(contract.avatar);
   }
-
-  canViewConversation(userId: UUID){
-    return this.isParticipant(userId);
-  }
   
+  requestToView(userId: UUID){
+    if(!this.canViewConversation(userId)){
+      throw new UserNotInConversationException(userId);
+    }
+  }
+
   addParticipant(addedBy: UUID, addedUser: UUID){
     if(!this.canAddParticipant(addedBy)){
       throw new NotHavePermissionInConversationException(addedBy, this.id);
@@ -60,42 +65,61 @@ export class Conversation extends Aggregate<UUID>{
     if(this.type === ConversationTypeEnum.DIRECT_CHAT){
       throw new AddToDirectConversationException(this.id, addedUser);
     }
-    if(this.checkUserAlreadyInConversation(addedUser)){
+    if(this.isParticipant(addedUser)){
       throw new UserAlreadyInConversationException(addedUser);
     }
     this._userInConversations.push(UserInConversation.create(this.id, addedUser));
-    this.addDomainEvent(new AddParticipantEvent(this.id, addedUser));
+    this.addDomainEvent(new AddParticipantEvent(this.id, addedBy, addedUser));
   }
 
   removeParticipant(removedBy: UUID, removedUser: UUID){
-    if(!this.canRemoveParticipant(removedBy)){
+    if(!this.canRemoveParticipant(removedBy, removedUser)){
       throw new NotHavePermissionInConversationException(removedBy, this.id);
     }
+    if(!this.isParticipant(removedUser)){
+      throw new UserNotInConversationException(removedUser); //-> change exception
+    }
     this._userInConversations = this._userInConversations.filter(uic => uic.userId !== removedUser);
-    this.addDomainEvent(new RemoveParticipantEvent(this.id, removedUser));
+    this.addDomainEvent(new RemoveParticipantEvent(this.id, removedBy, removedUser));
   }
 
-  private canAddParticipant(userId: UUID){
+  requestToDelete(deletedBy: UUID){
+    if(!this.canDeleteConversation(deletedBy)){
+      throw new NotHavePermissionInConversationException(deletedBy, this.id);
+    }
+    this.addDomainEvent(new DeleteConversationEvent(this.id));
+  }
+
+  private canViewConversation(userId: UUID){
     return this.isParticipant(userId);
   }
 
-  private canRemoveParticipant(userId: UUID){
-    return this.isCreator(userId);
+  private canAddParticipant(addedBy: UUID){
+    return this.isParticipant(addedBy);
+  }
+
+  private canRemoveParticipant(removedBy: UUID, removedUser: UUID){
+    return (this.isOwner(removedBy) || this.isAdmin(removedBy)) && (!this.isOwner(removedUser) || !this.isAdmin(removedUser));
+  }
+
+  private canDeleteConversation(deletedBy: UUID){
+    return this.isOwner(deletedBy) && this.isParticipant(deletedBy) ;
   }
   
-
   private isParticipant(userId: UUID){
     return this.userInConversations.some(uic => uic.userId === userId);
   }
 
-  private isCreator(userId: UUID){
-    return this.createdBy === userId;
+  private isOwner(userId: UUID){
+    return this.owner === userId;
   }
 
-  private checkUserAlreadyInConversation(userId: UUID){
-    return this.userInConversations.some(uic => uic.userId === userId);
+  private isAdmin(userId: UUID){
+    const userInConversation = this.userInConversations.find(uic => uic.userId === userId);
+    return userInConversation.role === ConversationRoleEnum.ADMIN;
   }
-  
+
+
   private static createDirectChat(conversationId: UUID, userInConversation?: UserInConversation[], theme?: string, creatorId?: UUID){
     const type = ConversationTypeEnum.DIRECT_CHAT;
     const conversation = Conversation.assign(conversationId, null, type, theme, null, userInConversation, creatorId);
@@ -128,8 +152,8 @@ export class Conversation extends Aggregate<UUID>{
     return this._userInConversations;
   }
 
-   get createdBy(){
-    return this._createdBy;
+   get owner(){
+    return this._owner;
   }
 
   setTitle(title: string){
@@ -152,7 +176,7 @@ export class Conversation extends Aggregate<UUID>{
     this._userInConversations = userInConversations;
   }
 
-  setCreatedBy(createdBy: UUID){
-    this._createdBy = createdBy;
+  setOwner(owner: UUID){
+    this._owner = owner;
   }
 }

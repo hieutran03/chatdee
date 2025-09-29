@@ -20,7 +20,7 @@ export class ConversationAdapter implements IAdapter<Conversation, ConversationO
       orm.theme,
       orm.avatar,
       userInConversations,
-      orm.createdById
+      orm.ownerId
     )
   }
   toOrm(entity: Conversation): ConversationOrm {
@@ -31,19 +31,7 @@ export class ConversationAdapter implements IAdapter<Conversation, ConversationO
       theme: entity?.theme,
       avatar: entity?.avatar,
       userInConversations: entity?.userInConversations?.map(uic => this.userInConversationAdapter.toOrm(uic)),
-      createdById: entity?.createdBy
+      ownerId: entity?.owner
     })
-  }
-  async toOrmAsync(entity: Conversation): Promise<ConversationOrm> {
-    const userInConversationOrms = await Promise.all(entity?.userInConversations?.map(uic => this.userInConversationAdapter.toOrmAsync(uic)) || []);
-    return new ConversationOrm({
-      id: entity?.id,
-      title: entity?.title?.value,
-      type: entity?.type,
-      theme: entity?.theme,
-      avatar: entity?.avatar,
-      userInConversations: userInConversationOrms,
-      createdById: entity?.createdBy
-    });
   }
 }

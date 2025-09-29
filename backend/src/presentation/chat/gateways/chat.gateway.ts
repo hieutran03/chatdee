@@ -12,10 +12,11 @@ import { WsJwtGuard } from 'src/application/auth/guards/ws-jwt.guard';
 import { JoinConversationInput } from '../../../application/chats/dtos/join-conversation.input';
 import { WsUser } from 'src/shared/core/decorators/ws-user.decorator';
 import { SendMessageInput } from '../../../application/chats/dtos/send-message.input';
-import { User } from 'src/domain/users/users';
 import { WsValidationPipe } from 'src/shared/core/pipes/ws-validation.pipe';
 import { WebSocketExceptionFilter } from 'src/shared/core/filters/ws-exception.filter';
-import { EventBus } from '@nestjs/cqrs';
+import { ChatActionEnum } from 'src/shared/common/enums/chat-action.enum';
+import { ChatServerWebsocket } from 'src/infrastructure/websocket/impl/chat-server.websocket';
+import { IUserToSign } from 'src/application/auth/interfaces/user-to-sign.interface';
 
 @UsePipes(new WsValidationPipe())
 @UseGuards(WsJwtGuard)
@@ -25,20 +26,24 @@ import { EventBus } from '@nestjs/cqrs';
     origin: '*', 
   },
 })
-export class ChatGateway {
+export class ChatGateway{
   constructor(
     private readonly chatService: ChatService,
-    private readonly eventBus: EventBus
+    private readonly chatServer: ChatServerWebsocket 
   ){}
 
   @WebSocketServer()
   server: Server;
 
+  afterInit() {
+    this.chatServer.setServer(this.server); //-> Replace by message queue
+  }
+
   @SubscribeMessage('join')
   async handleJoin(
     @MessageBody() data: JoinConversationInput,
     @ConnectedSocket() client: Socket,
-    @WsUser() user: User
+    @WsUser() user: IUserToSign
   ) {
     await this.chatService.findConversation(data.conversationId);
     client.join(data.conversationId);
@@ -48,12 +53,14 @@ export class ChatGateway {
   @SubscribeMessage('chat')
   async handleChat(
     @MessageBody() data: SendMessageInput,
-    @WsUser() user: User
+    @WsUser() user: IUserToSign
   ) {
     await this.chatService.saveMessage(user.id, data);
     this.server.to(data.conversationId).emit('chat', {
       userId: user.id,
       content: data.content,
+      type: data.type,
+      action: data.action || ChatActionEnum.SEND_MESSAGE
     });
   }
 

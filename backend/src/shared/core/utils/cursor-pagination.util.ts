@@ -43,7 +43,7 @@ export async function cursorPaginate<T>(
 }
 
 /**
- * Áp điều kiện cursor vào query
+ * Apply cursor condition to the query builder
  */
 function applyCursorCondition<T>(
   qb: SelectQueryBuilder<T>,

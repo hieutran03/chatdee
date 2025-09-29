@@ -18,11 +18,11 @@ export class Aggregate<T> extends AggregateRoot{
     this._id = id;
   }
   
-  addDomainEvent(event: any) {
+  addDomainEvent(event: DomainEvent) {
     this.domainEvents.push(event);
   }
 
-  pullDomainEvents(): any[] {
+  pullDomainEvents(): DomainEvent[] {
     const events = this.domainEvents;
     this.domainEvents = [];
     return events;

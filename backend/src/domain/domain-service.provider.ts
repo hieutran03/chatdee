@@ -1,5 +1,5 @@
-import { ConversationManagerService } from "./conversations/manager-service/conversation.manager-service";
+import { CreateConversationDomainService } from "./conversations/domain-service/create-conversation.domain-service";
 
 export const DomainServices = [
-  ConversationManagerService
+  CreateConversationDomainService
 ];

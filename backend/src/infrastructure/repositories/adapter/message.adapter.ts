@@ -10,6 +10,7 @@ export class MessageAdapter implements IAdapter<Message, MessageOrm>{
       orm.conversationId,
       orm.content,
       orm.type,
+      orm.action,
       orm.createdAt,
       orm.updatedAt
     );
