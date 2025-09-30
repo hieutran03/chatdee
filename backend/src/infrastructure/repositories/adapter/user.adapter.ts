@@ -6,7 +6,7 @@ export class UserAdapter implements IAdapter<User, UserOrm>{
   constructor(){}
   toEntity(orm: UserOrm){
     if(!orm) return null;
-    return User.create(
+    return User.assign(
       orm.id,
       orm.role,
       orm.name,

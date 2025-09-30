@@ -19,7 +19,7 @@
     "migrate:run:dev": "npx dotenv -e ./.env.development -- yarn typeorm:cli migration:run -d ./src/datasource/configs",
     "migrate:revert:dev": "npx dotenv -e ./.env.development -- yarn typeorm:cli migration:revert -d ./src/datasource/configs",
     "migrate:show:dev": "npx dotenv -e ./.env.development -- yarn typeorm:cli migration:show -d ./src/datasource/configs",
-    "seed": "ts-node -r tsconfig-paths/register ./node_modules/typeorm-extension/dist/cli.js seed -d src/datasource/index.ts"
+    "seed:dev": "npx dotenv -e ./.env.development -- ts-node -r tsconfig-paths/register src/datasource/seeding/index.ts"
   },
   "dependencies": {
     "@faker-js/faker": "8.4.1",

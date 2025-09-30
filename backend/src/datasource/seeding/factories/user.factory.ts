@@ -8,6 +8,7 @@ export const UserFactory = setSeederFactory(UserOrm, async (faker: Faker) => {
   const user = new UserOrm({
     email: faker.internet.email(),
     name: faker.person.fullName(),
+    bornYear: faker.number.int({min: 1990, max: 2010}),
     hashedPassword: await hashPassword('password123'),
     avatar: faker.image.avatar(),
     role: RoleEnum.USER
