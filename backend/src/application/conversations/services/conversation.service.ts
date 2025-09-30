@@ -98,8 +98,6 @@ export class ConversationService{
     return Array.from(new Set(userIds));
   }
 
-
-
   private async findConversation(conversationId: UUID){
     const conversation = await this.conversationRepository.findById(conversationId);
     if(!conversation)

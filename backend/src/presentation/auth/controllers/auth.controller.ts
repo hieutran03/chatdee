@@ -7,6 +7,8 @@ import { UserDecorator } from "src/shared/core/decorators/user.decorator";
 import { ApiDecorator } from "src/shared/core/decorators/api.decorator";
 import { AuthResponseSwagger, AuthOperation } from "../swagger/auth-response.swagger";
 import { IUserToSign } from "src/application/auth/interfaces/user-to-sign.interface";
+import { SignupInput } from "src/application/auth/dtos/sign-up.input";
+import { SignUpCommand } from "src/application/auth/commands/sign-up.command";
 
 @Controller('auth')
 export class AuthController {
@@ -21,6 +23,13 @@ export class AuthController {
   @Post('login')
   async login(@Body() loginInput: LoginInput){
     const result = await this.commandBus.execute(new LoginCommand(loginInput));
+    return result;
+  }
+
+  @ApiDecorator({ isPublic: true })
+  @Post('signup')
+  async signup(@Body() signupInput: SignupInput) {
+    const result = await this.commandBus.execute(new SignUpCommand(signupInput));
     return result;
   }
 

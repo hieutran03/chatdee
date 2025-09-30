@@ -54,8 +54,7 @@ export class CreateUserInput{
 
   toEntity(){
     return User.create(
-      null,
-      this.role || RoleEnum.USER,
+      this.role,
       this.name,
       this.bornYear,
       this.email,

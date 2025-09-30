@@ -12,6 +12,8 @@ import { LoginOutput } from 'src/application/auth/dtos/login.output';
 import { GetProfileOutput } from 'src/application/auth/dtos/get-profile.output';
 import { AccountNotFoundException } from 'src/shared/core/exceptions/not-found/account-not-found.exception';
 import { InvalidCredentialsException } from 'src/shared/core/exceptions/auth/invallid-credential-exception';
+import { SignupInput } from '../dtos/sign-up.input';
+import { UserAlreadyExistException } from 'src/shared/core/exceptions/conflict/user-already-exist.exception';
 
 @Injectable()
 export class AuthService {
@@ -39,6 +41,15 @@ export class AuthService {
     const user = await this.userRepository.findByEmail(email);
     if(!user) throw new AccountNotFoundException(email)
     return user;
+  }
+
+  async register(input: SignupInput) {
+    const existingUser = await this.userRepository.findByEmail(input.email);
+    if (existingUser) {
+      throw new UserAlreadyExistException(input.email);
+    }
+    const user = await input.toEntity();
+    return this.userRepository.save(user);
   }
 
   private async checkPassword(hashedPassword: string, password: string) {

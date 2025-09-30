@@ -2,6 +2,7 @@ import { UUID } from "crypto";
 import { Aggregate } from "../../shared/libs/ddd/aggregate";
 import { RoleEnum } from "./enums/role.enum";
 import { UpdateUserContract } from "./contracts/update-user.contract";
+import { hashPassword } from "src/shared/core/utils/password.util";
 
 export class User extends Aggregate<UUID>{
   private _role: RoleEnum;
@@ -19,9 +20,14 @@ export class User extends Aggregate<UUID>{
     this.setAvatar(avatar);
     this.setPassword(hashedPassword);
   }
-
-  static create(id: UUID, role: RoleEnum, name: string, bornYear: number, email: string, avatar: string, hashedPassword?: string): User{
+  
+  static assign(id: UUID, role: RoleEnum, name: string, bornYear: number, email: string, avatar: string, hashedPassword?: string): User{
     return new User(id, role, name, bornYear, email, avatar, hashedPassword);
+  }
+
+  static async create(role: RoleEnum = RoleEnum.USER, name: string, bornYear: number, email: string, avatar: string, password?: string): Promise<User>{
+    const hashedPassword = await hashPassword(password);
+    return new User(crypto.randomUUID(), role, name, bornYear, email, avatar, hashedPassword);
   }
 
   update(contract: UpdateUserContract){

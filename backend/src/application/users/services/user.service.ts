@@ -40,14 +40,9 @@ export class UserService {
   async createUser(dto: CreateUserInput) {
     await this.checkEmailConflict(dto.email);
 
-    const user = dto.toEntity();
+    const user = await dto.toEntity();
 
-    const userWithHashedPassword = await this.assignUserWithHashedPassword(
-      user,
-      dto.password,
-    );
-
-    const newUser = await this.userRepository.save(userWithHashedPassword);
+    const newUser = await this.userRepository.save(user);
 
     return new UserOutput(newUser);
   }
@@ -65,12 +60,6 @@ export class UserService {
   async deleteUser(userId: UUID) {
     await this.checkUserExists(userId);
     await this.userRepository.delete(userId);
-  }
-
-  async assignUserWithHashedPassword(user: User, password: string) {
-    const hashedPassword = await hashPassword(password);
-    user.setPassword(hashedPassword);
-    return user;
   }
 
   async checkEmailConflict(email: string) {
