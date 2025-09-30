@@ -34,7 +34,7 @@ export class CreateConversationDomainService {
     const users = await this.userRepository.findByIds(userIds);
     const foundUserIds = new Set(users.map(user => user.id));
     const notFoundUserIds = userIds.filter(id => !foundUserIds.has(id));
-    if (notFoundUserIds.length > 0) {
+    if (notFoundUserIds.length > 0) {//-> Throw exception
     }
   }
 

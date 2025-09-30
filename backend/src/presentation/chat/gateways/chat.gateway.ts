@@ -17,6 +17,8 @@ import { WebSocketExceptionFilter } from 'src/shared/core/filters/ws-exception.f
 import { ChatActionEnum } from 'src/shared/common/enums/chat-action.enum';
 import { ChatServerWebsocket } from 'src/infrastructure/websocket/impl/chat-server.websocket';
 import { IUserToSign } from 'src/application/auth/interfaces/user-to-sign.interface';
+import { MessagePayload } from 'src/application/chats/payload/chat-message.type';
+import { LeaveConversationInput } from 'src/application/chats/dtos/leave-conversation.input';
 
 @UsePipes(new WsValidationPipe())
 @UseGuards(WsJwtGuard)
@@ -36,7 +38,7 @@ export class ChatGateway{
   server: Server;
 
   afterInit() {
-    this.chatServer.setServer(this.server); //-> Replace by message queue
+    this.chatServer.setServer(this.server); 
   }
 
   @SubscribeMessage('join')
@@ -56,12 +58,23 @@ export class ChatGateway{
     @WsUser() user: IUserToSign
   ) {
     await this.chatService.saveMessage(user.id, data);
-    this.server.to(data.conversationId).emit('chat', {
-      userId: user.id,
-      content: data.content,
-      type: data.type,
-      action: data.action || ChatActionEnum.SEND_MESSAGE
-    });
+    this.server.to(data.conversationId).emit('chat', new MessagePayload(
+      user.id,
+      data.conversationId,
+      data.content,
+      data.type,
+      ChatActionEnum.SEND_MESSAGE
+    ));
+  }
+
+  @SubscribeMessage('leave')
+  async handleLeave(
+    @MessageBody() data: LeaveConversationInput,
+    @ConnectedSocket() client: Socket,
+    @WsUser() user: IUserToSign
+  ) {
+    client.leave(data.conversationId);
+    this.server.to(data.conversationId).emit('system', `${user.id} left`);
   }
 
   handleConnection(client: Socket) {

@@ -19,6 +19,9 @@ import { ConversationPaginationContract } from "src/domain/conversations/contrac
 import { TCursor } from "src/shared/common/types/cursor.type";
 import { ConversationExtraInfoContract } from "src/domain/conversations/contracts/conversation-extra-info.contract";
 import { ConversationDetailContract } from "src/domain/conversations/contracts/conversation-detail.contract";
+import { MemberContract } from "src/domain/conversations/contracts/member.contract";
+import { UserInConversationAdapter } from "../adapter/user-in-conversation.adapter";
+import { UserInConversation } from "src/domain/conversations/entities/user-in-conversation.entity";
 
 @Injectable()
 export class ConversationRepository implements IConversationRepository {
@@ -33,6 +36,8 @@ export class ConversationRepository implements IConversationRepository {
     private readonly conversationAdapter: IAdapter<Conversation, ConversationOrm>,
     @Inject(UserAdapter)
     private readonly userAdapter: IAdapter<User, UserOrm>,
+    @Inject(UserInConversationAdapter)
+    private readonly userInConversationAdapter: IAdapter<UserInConversation, UserInConversationOrm>,
   ){}
 
   async findWithCursorPagination(userId: UUID, limit: number, cursor: TCursor, direction: Direction): Promise<ConversationPaginationContract> {
@@ -88,18 +93,20 @@ export class ConversationRepository implements IConversationRepository {
   async findByIdDetails(id: UUID): Promise<ConversationDetailContract> {
     const conversationOrm = await this.conversationRepository.findOne({ 
       where: { id },
-      relations: ['userInConversations', 'owner']
+      relations: ['userInConversations', 'owner', 'userInConversations.user']
     });
     if(!conversationOrm)
       return null;
-    const conversation = conversationOrm ? this.conversationAdapter.toEntity(conversationOrm) : null;
-    const userIds = conversationOrm?.userInConversations.map(uic => uic.userId);
-    const members = await this.userRepository.findBy({ id: In(userIds) });
+    const conversation = this.conversationAdapter.toEntity(conversationOrm);
+    const members = conversationOrm.userInConversations.map(uic => new MemberContract(
+      this.userInConversationAdapter.toEntity(uic),
+      this.userAdapter.toEntity(uic.user)
+    ))
     return new ConversationDetailContract(
       conversation, 
       conversationOrm.createdAt, 
       conversationOrm.updatedAt, 
-      members.map(member => this.userAdapter.toEntity(member)),
+      members,
       this.userAdapter.toEntity(conversationOrm.owner)
     );
   }

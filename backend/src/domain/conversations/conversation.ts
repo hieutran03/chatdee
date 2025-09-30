@@ -13,6 +13,7 @@ import { NotHavePermissionInConversationException } from "src/shared/core/except
 import { UserNotInConversationException } from "src/shared/core/exceptions/forbidden/user-not-in-conversation.exception";
 import { ConversationRoleEnum } from "src/shared/common/enums/conversation-role.enum";
 import { DeleteConversationEvent } from "./events/delete-conversation.event";
+import { UpdateParticipantContract } from "./contracts/update-participant.contract";
 
 export class Conversation extends Aggregate<UUID>{
   private _title: ConversationTitleVO;
@@ -77,7 +78,7 @@ export class Conversation extends Aggregate<UUID>{
       throw new NotHavePermissionInConversationException(removedBy, this.id);
     }
     if(!this.isParticipant(removedUser)){
-      throw new UserNotInConversationException(removedUser); //-> change exception
+      throw new UserNotInConversationException(removedUser); //-> 409
     }
     this._userInConversations = this._userInConversations.filter(uic => uic.userId !== removedUser);
     this.addDomainEvent(new RemoveParticipantEvent(this.id, removedBy, removedUser));
@@ -88,6 +89,27 @@ export class Conversation extends Aggregate<UUID>{
       throw new NotHavePermissionInConversationException(deletedBy, this.id);
     }
     this.addDomainEvent(new DeleteConversationEvent(this.id));
+  }
+
+  updateParticipant(updatedBy: UUID, updatedUser: UUID, contract: UpdateParticipantContract){
+    if(contract.role){
+      this.updateParticipantRole(updatedBy, updatedUser, contract.role);
+    }
+  }
+
+  changeOwner(updatedBy: UUID, newOwner: UUID){
+    if(!this.isOwner(updatedBy) || !this.isParticipant(newOwner)){
+      throw new NotHavePermissionInConversationException(updatedBy, this.id);
+    }
+    this._owner = newOwner;
+  }
+
+  private updateParticipantRole(updatedBy: UUID, updatedUser: UUID, newRole: ConversationRoleEnum){
+    if(!this.canUpdateRole(updatedBy, updatedUser, newRole)){
+      throw new NotHavePermissionInConversationException(updatedBy, this.id);
+    }
+    const userInConversation = this.userInConversations.find(uic => uic.userId === updatedUser);
+    userInConversation.setRole(newRole);
   }
 
   private canViewConversation(userId: UUID){
@@ -102,8 +124,13 @@ export class Conversation extends Aggregate<UUID>{
     return (this.isOwner(removedBy) || this.isAdmin(removedBy)) && (!this.isOwner(removedUser) || !this.isAdmin(removedUser));
   }
 
+  private canUpdateRole(updatedBy: UUID, updatedUser: UUID, newRole: ConversationRoleEnum){
+    return this.isOwner(updatedBy) 
+      || (this.compareRole(this.getRole(updatedBy), this.getRole(updatedUser)) && this.compareRole(this.getRole(updatedBy), newRole));
+  }
+
   private canDeleteConversation(deletedBy: UUID){
-    return this.isOwner(deletedBy) && this.isParticipant(deletedBy) ;
+    return this.isOwner(deletedBy) && this.isParticipant(deletedBy);
   }
   
   private isParticipant(userId: UUID){
@@ -119,6 +146,15 @@ export class Conversation extends Aggregate<UUID>{
     return userInConversation.role === ConversationRoleEnum.ADMIN;
   }
 
+  private compareRole(currentRole: ConversationRoleEnum, roleToCompare: ConversationRoleEnum){
+    const rolesHierarchy = [ConversationRoleEnum.MEMBER, ConversationRoleEnum.ADMIN];
+    return rolesHierarchy.indexOf(currentRole) > rolesHierarchy.indexOf(roleToCompare);
+  }
+
+  private getRole(userId: UUID){
+    const userInConversation = this.userInConversations.find(uic => uic.userId === userId);
+    return userInConversation.role;
+  }
 
   private static createDirectChat(conversationId: UUID, userInConversation?: UserInConversation[], theme?: string, creatorId?: UUID){
     const type = ConversationTypeEnum.DIRECT_CHAT;

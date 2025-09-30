@@ -9,8 +9,8 @@ import { ConversationNotFoundException } from "src/shared/core/exceptions/not-fo
 import { FindConversationsInput } from "../dtos/find-conversations.input";
 import { EventBus } from "@nestjs/cqrs";
 import { UpdateConversationInput } from "../dtos/update-conversation.input";
-import { UserNotInConversationException } from "src/shared/core/exceptions/forbidden/user-not-in-conversation.exception";
 import { publishDomainEvents } from "src/shared/core/utils/domain-event.util";
+import { UpdateMemberInput } from "../dtos/update-member.input";
 
 @Injectable()
 export class ConversationService{
@@ -37,7 +37,9 @@ export class ConversationService{
     const allUserIds = this.removeDuplicatedUserIds([creatorId, ...targetUserIds]);
     await this.createConversationDomainService.validateConversation(allUserIds);
     const conversation = Conversation.create(creatorId, allUserIds, title, theme, avatar);
-    return this.conversationRepository.save(conversation);
+    const result = await this.conversationRepository.save(conversation);
+    publishDomainEvents(this.eventBus, conversation);
+    return result;
   }
 
   async update(conversationId: UUID, payload: UpdateConversationInput){
@@ -46,6 +48,7 @@ export class ConversationService{
       throw new ConversationNotFoundException(conversationId);
     conversation.update(payload.toContract());
     await this.conversationRepository.update(conversation.id, conversation);
+    publishDomainEvents(this.eventBus, conversation);
   }
 
   async delete(userId: UUID, conversationId: UUID){
@@ -77,9 +80,25 @@ export class ConversationService{
     publishDomainEvents(this.eventBus, conversation);
   }
 
+  async updateMember(conversationId: UUID, updatedBy: UUID, updatedUser: UUID, input: UpdateMemberInput){
+    const conversation = await this.findConversation(conversationId);
+    conversation.updateParticipant(updatedBy, updatedUser, input.toContract());
+    await this.conversationRepository.save(conversation);
+    publishDomainEvents(this.eventBus, conversation);
+  }
+
+  async changeOwner(conversationId: UUID, updatedBy: UUID, newOwner: UUID){
+    const conversation = await this.findConversation(conversationId);
+    conversation.changeOwner(updatedBy, newOwner);
+    await this.conversationRepository.save(conversation);
+    publishDomainEvents(this.eventBus, conversation);
+  }
+  
   private  removeDuplicatedUserIds(userIds: UUID[]){
     return Array.from(new Set(userIds));
   }
+
+
 
   private async findConversation(conversationId: UUID){
     const conversation = await this.conversationRepository.findById(conversationId);

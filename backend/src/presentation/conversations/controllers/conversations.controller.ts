@@ -27,6 +27,9 @@ import { UpdateConversationInput } from 'src/application/conversations/dtos/upda
 import { UpdateConversationCommand } from 'src/application/conversations/commands/update-conversation.command';
 import { DeleteConversationCommand } from 'src/application/conversations/commands/delete-conversation.command';
 import { IUserToSign } from 'src/application/auth/interfaces/user-to-sign.interface';
+import { UpdateMemberInput } from 'src/application/conversations/dtos/update-member.input';
+import { UpdateMemberCommand } from 'src/application/conversations/commands/update-member.command';
+import { ChangeOwnerCommand } from 'src/application/conversations/commands/change-owner.command';
 
 @Controller('conversations')
 export class ConversationController {
@@ -61,7 +64,7 @@ export class ConversationController {
     @UserDecorator() user: IUserToSign,
     @Body() createConversationInput: CreateConversationInput,
   ) {
-    return await this.commandBus.execute(new CreateConversationCommand(user.id, createConversationInput));
+    return this.commandBus.execute(new CreateConversationCommand(user.id, createConversationInput));
   }
 
   @ApiDecorator({ isPublic: false })
@@ -70,13 +73,13 @@ export class ConversationController {
     @Param('conversationId') conversationId: UUID,
     @Body() payload: UpdateConversationInput,
   ) {
-    return await this.commandBus.execute(new UpdateConversationCommand(conversationId, payload));
+    return this.commandBus.execute(new UpdateConversationCommand(conversationId, payload));
   }
 
   @ApiDecorator({ isPublic: false })
   @Delete('/:conversationId')
   async deleteConversation(@Param('conversationId') conversationId: UUID, @UserDecorator() user: IUserToSign) {
-    return await this.commandBus.execute(new DeleteConversationCommand(user.id, conversationId));
+    return this.commandBus.execute(new DeleteConversationCommand(user.id, conversationId));
   }
 
   @ConversationResponseSwagger(ConversationOperation.addMember)
@@ -87,7 +90,18 @@ export class ConversationController {
     @Param('conversationId') conversationId: UUID,
     @Param('addedUser') addedUser: UUID,
   ) {
-    return await this.commandBus.execute(new AddToConversationCommand(user.id, conversationId, addedUser));
+    return this.commandBus.execute(new AddToConversationCommand(user.id, conversationId, addedUser));
+  }
+
+  @ApiDecorator({ isPublic: false })
+  @Patch('/:conversationId/members/:updatedUser')
+  async updateMember(
+    @UserDecorator() user: IUserToSign,
+    @Param('conversationId') conversationId: UUID,
+    @Param('updatedUser') updatedUser: UUID,
+    @Body() input: UpdateMemberInput,
+  ) {
+    return this.commandBus.execute(new UpdateMemberCommand(conversationId, user.id, updatedUser, input));
   }
 
   @ConversationResponseSwagger(ConversationOperation.removeMember)
@@ -98,6 +112,16 @@ export class ConversationController {
     @Param('conversationId') conversationId: UUID,
     @Param('removedUser') removedUser: UUID,
   ) {
-    return await this.commandBus.execute(new RemoveFromConversationCommand(user.id, conversationId, removedUser));
+    return this.commandBus.execute(new RemoveFromConversationCommand(user.id, conversationId, removedUser));
+  }
+
+  @ApiDecorator({ isPublic: false })
+  @Post('/:conversationId/owner/:newOwner')
+  async changeOwner(
+    @UserDecorator() user: IUserToSign,
+    @Param('conversationId') conversationId: UUID,
+    @Param('newOwner') newOwner: UUID,
+  ) {
+    return this.commandBus.execute(new ChangeOwnerCommand(user.id, conversationId, newOwner));
   }
 }

@@ -7,7 +7,7 @@ export class UserInConversation extends Entity {
   private _userId: UUID;
   private _role: ConversationRoleEnum;
 
-  private constructor(conversationId: UUID, userId: UUID, role: ConversationRoleEnum) {
+  protected constructor(conversationId: UUID, userId: UUID, role: ConversationRoleEnum) {
     super();
     this.setConversationId(conversationId);
     this.setUserId(userId);

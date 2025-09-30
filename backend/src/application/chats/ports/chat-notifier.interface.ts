@@ -1,8 +1,7 @@
-import { AddParticipantPayload } from "../payload/add-participant.payload";
-import { RemoveParticipantPayload } from "../payload/remove-participant.payload";
+import { MessagePayload } from "../payload/chat-message.type";
+
 
 export const IChatNotifierToken = 'IChatNotifier';
 export interface IChatNotifier {
-  addParticipant(payload: AddParticipantPayload): void;
-  removeParticipant(payload: RemoveParticipantPayload): void;
+  notify(message: MessagePayload): void;
 }

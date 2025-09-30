@@ -5,6 +5,7 @@ import { ConversationDetailContract } from 'src/domain/conversations/contracts/c
 import { ConversationExtraInfoContract } from 'src/domain/conversations/contracts/conversation-extra-info.contract';
 import { Conversation } from 'src/domain/conversations/conversation';
 import { ConversationTypeEnum } from 'src/shared/common/enums/conversations.enum';
+import { MemberOutput } from './member.output';
 
 export class ConversationOutput {
   @ApiProperty()
@@ -32,7 +33,7 @@ export class ConversationOutput {
   updatedAt?: Date;
 
   @ApiProperty({ type: () => [UserOutput] , required: false})
-  members: UserOutput[];
+  members: MemberOutput[];
 
   @ApiProperty({
     type: () => [UserOutput],
@@ -75,7 +76,7 @@ export class ConversationOutput {
     if(conversation instanceof ConversationDetailContract){
       this.owner = new UserOutput(conversation.ownerUser);
       this.members = conversation.members
-        ? conversation.members.map((user) => new UserOutput(user))
+        ? conversation.members.map((member) => new MemberOutput(member))
         : [];
       this.createdAt = conversation.createdAt;
       this.updatedAt = conversation.updatedAt;
