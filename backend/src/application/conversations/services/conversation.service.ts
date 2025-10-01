@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { CreateConversationDomainService } from "src/domain/conversations/domain-service/create-conversation.domain-service";
+import { ConversationDomainService } from "src/domain/conversations/domain-service/create-conversation.domain-service";
 import { CreateConversationInput } from "../dtos/create-conversation.input";
 import { UUID } from "crypto";
 import { Conversation } from "src/domain/conversations/conversation";
@@ -15,7 +15,7 @@ import { UpdateMemberInput } from "../dtos/update-member.input";
 @Injectable()
 export class ConversationService{
   constructor(
-    private createConversationDomainService: CreateConversationDomainService,
+    private conversationDomainService: ConversationDomainService,
     @Inject(IConversationRepositoryToken) private conversationRepository: IConversationRepository,
     private readonly eventBus: EventBus
   ){}
@@ -35,7 +35,7 @@ export class ConversationService{
 
   async create(creatorId: UUID,{ title, theme, avatar, targetUserIds }: CreateConversationInput){
     const allUserIds = this.removeDuplicatedUserIds([creatorId, ...targetUserIds]);
-    await this.createConversationDomainService.validateConversation(allUserIds);
+    await this.conversationDomainService.validateConversation(allUserIds);
     const conversation = Conversation.create(creatorId, allUserIds, title, theme, avatar);
     const result = await this.conversationRepository.save(conversation);
     publishDomainEvents(this.eventBus, conversation);

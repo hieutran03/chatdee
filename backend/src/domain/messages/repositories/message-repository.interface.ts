@@ -8,4 +8,5 @@ export const IMessageRepositoryToken = 'IMessageRepository';
 export interface IMessageRepository{
   findWithCursorPagination(conversationId: UUID, limit: number, cursor: TCursor, direction?: Direction): Promise<MessagePaginationContract>;
   save(message: Message): Promise<void>;
+  findById(id: UUID): Promise<Message>;
 }

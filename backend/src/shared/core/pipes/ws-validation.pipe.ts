@@ -1,5 +1,5 @@
 import { ValidationPipe } from "@nestjs/common";
-import { WsException } from "@nestjs/websockets";
+import { ValidationPipeException } from "../exceptions/bad-request/validation-pipe.exception";
 
 export class WsValidationPipe extends ValidationPipe {
   constructor() {
@@ -8,16 +8,7 @@ export class WsValidationPipe extends ValidationPipe {
       whitelist: true,
       forbidNonWhitelisted: true,
       exceptionFactory: (errors) => {
-        // Format lỗi cho WebSocket
-        const formattedErrors = errors.map(error => ({
-          field: error.property,
-          constraints: error.constraints
-        }));
-        throw new WsException({
-          code: 'VALIDATION_ERROR',
-          message: 'Validation failed',
-          errors: formattedErrors
-        });
+        throw new ValidationPipeException(errors);
       },
     });
   }

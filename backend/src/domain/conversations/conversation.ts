@@ -5,7 +5,7 @@ import { UUID } from "crypto";
 import { v4 as uuidv4 } from 'uuid';
 import { ConversationTitleVO } from "./value-objects/conversation-name.vo";
 import { UserAlreadyInConversationException } from "src/shared/core/exceptions/conflict/user-already-in-conversation.exception";
-import { AddToDirectConversationException } from "src/shared/core/exceptions/bussiness/add-to-direct-conversation.exception";
+import { AddToDirectConversationException } from "src/shared/core/exceptions/conflict/add-to-direct-conversation.exception";
 import { AddParticipantEvent } from "./events/add-participant.event";
 import { RemoveParticipantEvent } from "./events/remove-participant.event";
 import { UpdateConversationContract } from "./contracts/update-conversation.contract";

@@ -12,6 +12,7 @@ import { ChatService } from "./chats/services/chat.service";
 import { MessageService } from "./messages/services/message.service";
 import { MessageQueryHandlers } from "./messages/queries";
 import { ChatEventsHandlers } from "./chats/events";
+import { MessageCommandHandlers } from "./messages/commands/handlers";
 
 
 export const Services = [
@@ -26,7 +27,8 @@ export const Services = [
 export const CommandHandlers = [
   ...AuthCommandHandlers,
   ...UserCommandHandlers,
-  ...ConversationCommandHandlers
+  ...ConversationCommandHandlers,
+  ...MessageCommandHandlers
 ]
 export const QueryHandlers = [
   ...UserQueryHandlers,

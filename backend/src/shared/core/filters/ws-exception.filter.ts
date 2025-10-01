@@ -1,26 +1,24 @@
 import { ArgumentsHost, Catch } from '@nestjs/common';
 import { WsArgumentsHost } from '@nestjs/common/interfaces';
-import { BaseWsExceptionFilter, WsException } from '@nestjs/websockets';
+import { CoreException } from '../exceptions/core/core.exception';
+import { responseErrorResult } from '../utils/exception.util';
 
-@Catch()
-export class WebSocketExceptionFilter extends BaseWsExceptionFilter {
-  catch(exception: unknown, host: ArgumentsHost) {
-    // super.catch(exception, host);
+@Catch(CoreException)
+export class WebSocketExceptionFilter {
+  catch(exception: CoreException, host: ArgumentsHost) {
     const ctx = host.switchToWs() as WsArgumentsHost;
     const client = ctx.getClient();
     const pattern = ctx.getPattern();
     const data = ctx.getData();
 
-    let message = 'Unknown error';
-    if (exception instanceof WsException) {
-      message = exception.getError() as string;
-    } else if (exception instanceof Error) {
-      message = exception.message;
-    }
+    const errorResult = responseErrorResult(exception);
 
     client.emit('exception', {
       success: false,
-      message,
+      statusCode: errorResult.statusCode,
+      message: errorResult.message,
+      code: errorResult.code,
+      errors: errorResult.errors,
       cause: {
         pattern,
         data,

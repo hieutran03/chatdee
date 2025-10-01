@@ -22,7 +22,7 @@ export class MessageRepository implements IMessageRepository{
     private readonly messageRepository: Repository<MessageOrm>
   ){}
 
-  async findWithCursorPagination(conversationId: UUID, limit: number, cursor: TCursor, direction: Direction = Direction.NEXT): Promise<MessagePaginationContract> {
+  async findWithCursorPagination(conversationId: UUID, limit: number, cursor: TCursor, direction?: Direction): Promise<MessagePaginationContract> {
     const qb = this.messageRepository.createQueryBuilder('message')
       .where('message.conversationId = :conversationId', { conversationId })
 
@@ -41,5 +41,10 @@ export class MessageRepository implements IMessageRepository{
   async save(message: Message): Promise<void>{
     const messageOrm = this.messageAdapter.toOrm(message);
     await this.messageRepository.save(messageOrm);
+  }
+
+  async findById(id: UUID): Promise<Message> {
+    const messageOrm = await this.messageRepository.findOneBy({ id });
+    return this.messageAdapter.toEntity(messageOrm);
   }
 }

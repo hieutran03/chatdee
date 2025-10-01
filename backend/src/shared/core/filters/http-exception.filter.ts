@@ -8,49 +8,33 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
-import { ValidationError } from 'class-validator';
+import { CoreException } from '../exceptions/core/core.exception';
+import { responseErrorResult } from '../utils/exception.util';
 
-@Catch(HttpException)
+@Catch(CoreException)
 export class HttpExceptionFilter implements ExceptionFilter {
   constructor(private readonly httpAdapterHost: HttpAdapterHost) {}
 
-  catch(exception: HttpException, host: ArgumentsHost) {
+  catch(exception: CoreException, host: ArgumentsHost) {
     const { httpAdapter } = this.httpAdapterHost;
 
     const ctx = host.switchToHttp();
 
-    const title = exception.name;
-    const statusCode = exception.getStatus();
-    const message = exception.message;
-    const fields = (exception.getResponse() as any)?.fields
-    const errors = (exception.getResponse() as any)?.message as string[] | ValidationError[] | undefined;
+    const errorResult = responseErrorResult(exception);
+
     // const traceId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     // const method = ctx.getRequest<Request>().method;
     // const path = ctx.getRequest<Request>().url;
-    
-    const httpStatus =
-      exception instanceof HttpException
-        ? exception.getStatus()
-        : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    const isDevelopment = true;
+    const isDevelopment = process.env.NODE_ENV === 'development';
 
     httpAdapter.reply(
       ctx.getResponse(),
       {
-        success: false,
-        title,
-        statusCode,
-        message,
-        fields,
-        errors,
-        // method,
-        // path,
-        // traceId,
-        // timestamp: new Date().toISOString(),
+        ...errorResult,
         ...(isDevelopment && { stack: exception.stack }),
       },
-      httpStatus,
+      errorResult.statusCode || HttpStatus.INTERNAL_SERVER_ERROR ,
     );
   }
 }

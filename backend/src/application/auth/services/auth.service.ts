@@ -11,7 +11,7 @@ import { comparePassword } from 'src/shared/core/utils/password.util';
 import { LoginOutput } from 'src/application/auth/dtos/login.output';
 import { GetProfileOutput } from 'src/application/auth/dtos/get-profile.output';
 import { AccountNotFoundException } from 'src/shared/core/exceptions/not-found/account-not-found.exception';
-import { InvalidCredentialsException } from 'src/shared/core/exceptions/auth/invallid-credential-exception';
+import { InvalidCredentialsException } from 'src/shared/core/exceptions/unauthorized/invallid-credential-exception';
 import { SignupInput } from '../dtos/sign-up.input';
 import { UserAlreadyExistException } from 'src/shared/core/exceptions/conflict/user-already-exist.exception';
 

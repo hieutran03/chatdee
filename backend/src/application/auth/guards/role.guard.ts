@@ -9,7 +9,7 @@ import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { RoleEnum } from 'src/domain/users/enums/role.enum';
 import { ApiMetadata } from 'src/shared/common/constants/api-metadata.constants';
-import { RestrictedResourceException } from 'src/shared/core/exceptions/auth/restricted-resource-exception';
+import { RestrictedResourceException } from 'src/shared/core/exceptions/forbidden/restricted-resource-exception';
 
 @Injectable()
 export class RoleGuard implements CanActivate {

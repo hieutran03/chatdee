@@ -23,6 +23,7 @@ export class MessageAdapter implements IAdapter<Message, MessageOrm>{
       type: entity?.type,
       conversationId: entity?.conversationId,
       userId: entity?.userId,
+      action: entity?.action,
       createdAt: entity?.createdAt,
       updatedAt: entity?.updatedAt
     });

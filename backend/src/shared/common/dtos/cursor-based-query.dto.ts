@@ -9,7 +9,7 @@ export class CursorBasedQueryDto extends PageQueryDto{
   @ApiProperty({
     description: 'Cursor for pagination',
     type: Date,
-    example: '2025-01-01T00:00:00Z',
+    example: new Date(),
     required: false,
     default: new Date()
   })
@@ -21,11 +21,10 @@ export class CursorBasedQueryDto extends PageQueryDto{
   @ApiProperty({
     description: 'Direction for pagination',
     enum: Direction,
-    example: Direction.NEXT,
+    example: Direction.PREV,
     required: false,
-    default: Direction.NEXT
   })
   @IsOptional()
   @IsEnum(Direction)
-  direction?: Direction = Direction.NEXT;
+  direction?: Direction = Direction.PREV;
 }

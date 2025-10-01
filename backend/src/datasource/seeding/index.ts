@@ -13,7 +13,6 @@ const options: DataSourceOptions & SeederOptions = {
 
 const datasource = new DataSource(options);
 datasource.initialize().then(async () => {
-  await datasource.synchronize(false);
   await runSeeders(datasource);
   process.exit();
 });

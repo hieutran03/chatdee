@@ -1,7 +1,7 @@
 import { ErrorCode } from "src/shared/common/enums/error-code.enum";
-import { BusinessException } from "./bussiness.exception";
+import { ConflictException } from "@nestjs/common";
 
-export class AddToDirectConversationException extends BusinessException{
+export class AddToDirectConversationException extends ConflictException{
   constructor(conversationId: string, userId: string){
     super(`Cannot add user ${userId} to direct conversation ${conversationId}`, ErrorCode.CONVS_06);
   }

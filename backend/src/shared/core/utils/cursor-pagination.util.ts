@@ -11,7 +11,7 @@ export async function cursorPaginate<T>(
   limit: number,
   cursor: TCursor,
   cursorField: string = 'createdAt',
-  direction: Direction = Direction.NEXT,
+  direction: Direction = Direction.PREV,
 ): Promise<TCursorPaginationResult<T>> {
   const take = limit;
 

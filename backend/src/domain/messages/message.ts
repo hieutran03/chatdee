@@ -2,6 +2,9 @@ import { UUID } from "crypto";
 import { MessageTypeEnum } from "src/infrastructure/relational-database/orm/message.orm";
 import { ChatActionEnum } from "src/shared/common/enums/chat-action.enum";
 import { Aggregate } from "src/shared/libs/ddd/aggregate";
+import { UpdateMessageEvent } from "./events/update-message.event";
+import { UpdateNonTextMessageException } from "src/shared/core/exceptions/bad-request/update-non-text-message.exception";
+import { ModifyOthersMessageException } from "src/shared/core/exceptions/forbidden/modify-others-message.exception";
 
 export class Message extends Aggregate<UUID>{
   _userId: UUID;
@@ -30,6 +33,16 @@ export class Message extends Aggregate<UUID>{
   static create(userId: UUID, conversationId: UUID, content: string, type: MessageTypeEnum, action: ChatActionEnum){
     const id = crypto.randomUUID();
     return new Message(id, userId, conversationId, content, type, action);
+  }
+
+  update(userId: UUID, content: string){
+    if(this.userId !== userId)
+      throw new ModifyOthersMessageException(userId, this.id);
+    if(this.type !== MessageTypeEnum.TEXT)
+      throw new UpdateNonTextMessageException();
+    this.setContent(content);
+    this.setAction(ChatActionEnum.UPDATE_MESSAGE);
+    this.addDomainEvent(new UpdateMessageEvent(userId,this.id, this.conversationId, this.content));
   }
 
   setUserId(userId: UUID){

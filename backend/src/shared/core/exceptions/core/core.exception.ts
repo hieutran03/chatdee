@@ -1,14 +1,14 @@
 import { ErrorCode } from "src/shared/common/enums/error-code.enum";
 
-export class DomainException extends Error{
-  type: string;
+export class CoreException extends Error{
   message: string;
   errorCode: ErrorCode;
-  constructor(message: string, errorCode: ErrorCode, errors?: any[]){
+  errors?: any;
+  constructor(message: string, errorCode: ErrorCode, errors?: any){
     super();
-    this.type = 'DomainException';
     this.message = message;
     this.errorCode = errorCode;
+    this.errors = errors;
   }
 }
 

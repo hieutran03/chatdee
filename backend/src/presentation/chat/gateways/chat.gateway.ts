@@ -47,7 +47,7 @@ export class ChatGateway{
     @ConnectedSocket() client: Socket,
     @WsUser() user: IUserToSign
   ) {
-    await this.chatService.findConversation(data.conversationId);
+    await this.chatService.findConversation(user.id, data.conversationId);
     client.join(data.conversationId);
     this.server.to(data.conversationId).emit('system', `${user.id} joined`);    
   }

@@ -10,7 +10,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ResponseStatusInterceptor } from './shared/core/interceptors/response.interceptor';
 import { ValidationPipe } from '@nestjs/common';
 import { ValidationError } from 'class-validator';
-import { ValidationPipeException } from './shared/core/exceptions/core/presentation.exception';
+import { ValidationPipeException } from './shared/core/exceptions/bad-request/validation-pipe.exception';
 import { AppConfigService } from './infrastructure/app-config/services/app-config.service';
 import { AppConfigEnum } from './infrastructure/app-config/enums/app-config.enum';
 import { setSaltRounds } from './shared/core/utils/password.util';

@@ -1,5 +1,7 @@
-import { CreateConversationDomainService } from "./conversations/domain-service/create-conversation.domain-service";
+import { ConversationDomainService } from "./conversations/domain-service/create-conversation.domain-service";
+import { MessageDomainService } from "./messages/domain-services/message.domain-service";
 
 export const DomainServices = [
-  CreateConversationDomainService
+  ConversationDomainService,
+  MessageDomainService
 ];

@@ -6,7 +6,7 @@ export class ChatServerWebsocket{
   private server: Server = null;
 
   setServer(server: Server) {
-    if(this.server) throw new Error('Server instance already set'); //-> Exception
+    if(this.server) throw new Error('Server instance already set'); 
     this.server = server;
   }
 
