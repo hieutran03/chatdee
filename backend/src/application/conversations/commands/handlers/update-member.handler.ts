@@ -9,12 +9,12 @@ export class UpdateMemberHandler implements ICommandHandler<UpdateMemberCommand>
   constructor(
     private readonly conversationService: ConversationService
   ){}
-  async execute({conversationId, updatedBy, updatedUser, input}: UpdateMemberCommand) {
+  async execute({conversationId, updatedById, memberId, input}: UpdateMemberCommand) {
     try {
-      if(updatedBy === updatedUser){
+      if(updatedById === memberId){
         return SuccessResult.responseNoContent();
       }
-      await this.conversationService.updateMember(conversationId, updatedBy, updatedUser, input);
+      await this.conversationService.updateMember(conversationId, updatedById, memberId, input);
       return SuccessResult.responseUpdated();
     } catch (error) {
       return responseErrorResult(error);

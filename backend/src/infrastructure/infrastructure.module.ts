@@ -9,6 +9,7 @@ import { AppJwtModule } from './utils/app-jwt.module';
 import { PassportModule } from '@nestjs/passport/dist/passport.module';
 import { WebsocketModule } from './websocket/websocket.module';
 import { NotifierModule } from './notifier/notifier.module';
+import { RabbitmqModule } from './rabbitmq/rabbitmq.module';
 
 @Global()
 @Module({
@@ -21,7 +22,8 @@ import { NotifierModule } from './notifier/notifier.module';
     AppJwtModule,
     PassportModule,
     WebsocketModule,
-    NotifierModule
+    NotifierModule,
+    RabbitmqModule
   ],
   exports: [
     TypeOrmModule,
@@ -32,7 +34,8 @@ import { NotifierModule } from './notifier/notifier.module';
     AppJwtModule,
     PassportModule,
     WebsocketModule,
-    NotifierModule
+    NotifierModule,
+    RabbitmqModule
   ],
 })
 export class InfrastructureModule {}

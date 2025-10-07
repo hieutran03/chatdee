@@ -2,7 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn, Relation } from "
 import { UserOrm } from "./user.orm";
 import { ConversationOrm } from "./conversation.orm";
 import { AbstractOrm } from "../abstractions/asbtract.orm";
-import { ConversationRoleEnum } from "../../../shared/common/enums/conversation-role.enum";
+import { ConversationRoleEnum } from "../../../domain/conversations/enums/conversation-role.enum";
 
 @Entity({ name: 'user_in_conversation_orm' })
 export class UserInConversationOrm extends AbstractOrm<UserInConversationOrm>{

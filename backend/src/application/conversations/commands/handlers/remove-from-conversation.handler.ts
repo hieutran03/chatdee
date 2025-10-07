@@ -8,9 +8,9 @@ import { SuccessResult } from "src/shared/libs/result";
 export class RemoveFromConversationHandler implements ICommandHandler<RemoveFromConversationCommand> {
   constructor(private readonly conversationService: ConversationService) {}
 
-  async execute({removedBy, conversationId, removedUser}: RemoveFromConversationCommand): Promise<any> {
+  async execute({removedById, conversationId, memberId}: RemoveFromConversationCommand): Promise<any> {
     try{
-      await this.conversationService.removeFromConversation(removedBy, conversationId, removedUser);
+      await this.conversationService.removeFromConversation(removedById, conversationId, memberId);
       return SuccessResult.responseDeleted();
     }catch(error){
       return responseErrorResult(error);

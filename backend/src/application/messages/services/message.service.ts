@@ -25,12 +25,17 @@ export class MessageService {
       return new ConversationNotFoundException(conversationId);
     conversation.requestToView(userId);
 
-    return this.messageRepository.findWithCursorPagination(conversationId, input.limit, input.cursor, input.direction);
+    // return this.messageRepository.findWithCursorPagination(conversationId, input.limit, input.cursor, input.direction);
+    return this.messageRepository.findWithCursorPagination(conversationId, input.limit, input.cursor);
   }
 
   async update(userId: UUID, messageId: UUID, conversationId: UUID, input: UpdateMessagesInput) {
     const message = await this.messageDomainService.updateMessage(userId, messageId, conversationId, input.content);
+    publishDomainEvents(this.eventBus, message);
+  }
 
+  async delete(userId: UUID, messageId: UUID, conversationId: UUID) {
+    const message = await this.messageDomainService.deleteMessage(userId, messageId, conversationId);
     publishDomainEvents(this.eventBus, message);
   }
 }

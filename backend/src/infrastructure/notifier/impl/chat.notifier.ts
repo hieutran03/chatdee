@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { IChatNotifier } from 'src/application/chats/ports/chat-notifier.interface';
-import { MessagePayload } from 'src/application/chats/payload/chat-message.type';
+import { IChatNotifier } from 'src/application/chats/notifiers/chat-notifier.interface';
 import { ChatServerWebsocket } from 'src/infrastructure/websocket/impl/chat-server.websocket';
+import { MessageOutput } from 'src/application/messages/dtos/message.output';
 
 @Injectable()
 export class ChatNotifier implements IChatNotifier {
@@ -10,7 +10,7 @@ export class ChatNotifier implements IChatNotifier {
 
   ) {
   }
-  async notify(message: MessagePayload): Promise<void> {
+  async notify(message: MessageOutput): Promise<void> {
     this.chatServer.to(message.conversationId).emit('chat', message);
   }
 }

@@ -16,8 +16,9 @@ export class CreateConversationHandler implements ICommandHandler<CreateConversa
   async execute({creatorId,payload}: CreateConversationCommand) {
     try{
       const conversation = await this.conversationService.create(creatorId, payload);
-      const conversationExtraInfo = await this.conversationService.getConversationExtraInfo(conversation, 3);
-      const output = new ConversationOutput(conversation, conversationExtraInfo);
+      const topMembers = await this.conversationService.getTopMembers(conversation.id, 3);
+      const totalMembers = await this.conversationService.getTotalMembers(conversation.id);
+      const output = new ConversationOutput(conversation, topMembers, totalMembers);
       return SuccessResult.responseCreated(output);
     }catch(error){
       return responseErrorResult(error);

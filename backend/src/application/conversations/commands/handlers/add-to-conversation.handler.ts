@@ -9,9 +9,9 @@ export class AddToConversationHandler implements ICommandHandler<AddToConversati
   constructor(
     private readonly conversationService: ConversationService
   ){}
-  async execute({addedBy, conversationId, addedUser}: AddToConversationCommand): Promise<any> {
+  async execute({addedById, conversationId, memberId}: AddToConversationCommand): Promise<any> {
     try{
-      await this.conversationService.addToConversation(addedBy, conversationId, addedUser);
+      await this.conversationService.addToConversation(addedById, conversationId, memberId);
       return SuccessResult.responseOk();
     }catch(error){
       return responseErrorResult(error);

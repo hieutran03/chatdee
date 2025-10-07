@@ -5,8 +5,8 @@ export class DomainEvent {
   public readonly aggregateId: string;
   public readonly eventName: string;
 
-  protected constructor(aggregateId: string, eventName: string, eventId?: string, occurredOn?: Date) {
-    this.eventId = eventId || uuidv4();
+  protected constructor(aggregateId: string, eventName: string, occurredOn?: Date) {
+    this.eventId = uuidv4();
     this.occurredOn = occurredOn || new Date();
     this.aggregateId = aggregateId;
     this.eventName = eventName;

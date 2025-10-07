@@ -4,7 +4,7 @@ import { MessagePaginationContract } from "src/domain/messages/contracts/message
 
 export class FindMessagesOutput extends CursorBasedPageDto<MessageOutput>{
   constructor(contract: MessagePaginationContract){
-    const messagesOutput = contract.messages.map(m => new MessageOutput(m));
+    const messagesOutput = contract.messages.map(m => new MessageOutput(m, m.sender));
     super(messagesOutput, contract.limit, contract.nextCursor, contract.previousCursor);
   }
 }

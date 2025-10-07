@@ -1,0 +1,1 @@
+export const uuidPattern = `[0-9a-fA-F-]{36}`

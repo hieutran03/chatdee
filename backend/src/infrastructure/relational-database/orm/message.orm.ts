@@ -26,7 +26,7 @@ export class MessageOrm extends AbstractOrm<MessageOrm>{
 
   @JoinColumn({ name: 'user_id' })
   @ManyToOne(() => UserOrm)
-  user: Relation<UserOrm>;
+  user: UserOrm;
 
   @Column({
     name: 'conversation_id',

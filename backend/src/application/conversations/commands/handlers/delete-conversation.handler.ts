@@ -9,7 +9,7 @@ export class DeleteConversationHandler implements ICommandHandler<DeleteConversa
   constructor(private readonly conversationService: ConversationService){}
   async execute({userId, conversationId}: DeleteConversationCommand){
     try{
-      await this.conversationService.delete(conversationId, userId);
+      await this.conversationService.delete(userId, conversationId);
       return SuccessResult.responseDeleted();
     } catch(error){
       return responseErrorResult(error);

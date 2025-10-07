@@ -7,6 +7,7 @@ import { MessagePaginationContract } from "../contracts/message-pagination.contr
 export const IMessageRepositoryToken = 'IMessageRepository';
 export interface IMessageRepository{
   findWithCursorPagination(conversationId: UUID, limit: number, cursor: TCursor, direction?: Direction): Promise<MessagePaginationContract>;
-  save(message: Message): Promise<void>;
+  save(message: Message): Promise<Message>;
   findById(id: UUID): Promise<Message>;
+  delete(id: UUID): Promise<void>;
 }

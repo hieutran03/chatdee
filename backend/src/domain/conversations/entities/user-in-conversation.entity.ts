@@ -1,5 +1,5 @@
 import { UUID } from 'crypto';
-import { ConversationRoleEnum } from 'src/shared/common/enums/conversation-role.enum';
+import { ConversationRoleEnum } from 'src/domain/conversations/enums/conversation-role.enum';
 import { Entity } from 'src/shared/libs/ddd/entity';
 
 export class UserInConversation extends Entity {

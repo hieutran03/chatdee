@@ -15,13 +15,13 @@ export class ConversationDomainService {
     private readonly userRepository: IUserRepository
   ) {}
   
-  async validateConversation(allParticipantIds: UUID[]) {
-    if (allParticipantIds.length < 2)
+  async validateConversation(allUserIds: UUID[]) {
+    if (allUserIds.length < 2)
       throw new MinimumUsersInConversationException();
 
-    if(allParticipantIds.length === 2)
-      await this.validateDirectConversationNotExist(allParticipantIds[0], allParticipantIds[1]);
-    return await this.validateUsersExist(allParticipantIds);
+    if(allUserIds.length === 2)
+      await this.validateDirectConversationNotExist(allUserIds[0], allUserIds[1]);
+    return await this.validateUsersExist(allUserIds);
   }
 
   async ensureDirectConversationExists(firstUserId: UUID, secondUserId: UUID): Promise<UUID> {

@@ -30,6 +30,8 @@ import { IUserToSign } from 'src/application/auth/interfaces/user-to-sign.interf
 import { UpdateMemberInput } from 'src/application/conversations/dtos/update-member.input';
 import { UpdateMemberCommand } from 'src/application/conversations/commands/update-member.command';
 import { ChangeOwnerCommand } from 'src/application/conversations/commands/change-owner.command';
+import { FindMembersQuery } from 'src/application/conversations/queries/find-members.query';
+import { FindMembersInput } from 'src/application/conversations/dtos/find-members.input';
 
 @Controller('conversations')
 export class ConversationController {
@@ -82,46 +84,52 @@ export class ConversationController {
     return this.commandBus.execute(new DeleteConversationCommand(user.id, conversationId));
   }
 
+  @ApiDecorator({ isPublic: false })
+  @Get('/:conversationId/members')
+  async getMembers(@Param('conversationId') conversationId: UUID, @Query() query: FindMembersInput) {
+    return this.queryBus.execute(new FindMembersQuery(conversationId, query));
+  }
+
   @ConversationResponseSwagger(ConversationOperation.addMember)
   @ApiDecorator({ isPublic: false })
-  @Post('/:conversationId/members/:addedUser')
+  @Post('/:conversationId/members/:memberId')
   async addMember(
     @UserDecorator() user: IUserToSign,
     @Param('conversationId') conversationId: UUID,
-    @Param('addedUser') addedUser: UUID,
+    @Param('memberId') memberId: UUID,
   ) {
-    return this.commandBus.execute(new AddToConversationCommand(user.id, conversationId, addedUser));
+    return this.commandBus.execute(new AddToConversationCommand(user.id, conversationId, memberId));
   }
 
   @ApiDecorator({ isPublic: false })
-  @Patch('/:conversationId/members/:updatedUser')
+  @Patch('/:conversationId/members/:memberId')
   async updateMember(
     @UserDecorator() user: IUserToSign,
     @Param('conversationId') conversationId: UUID,
-    @Param('updatedUser') updatedUser: UUID,
+    @Param('memberId') memberId: UUID,
     @Body() input: UpdateMemberInput,
   ) {
-    return this.commandBus.execute(new UpdateMemberCommand(conversationId, user.id, updatedUser, input));
+    return this.commandBus.execute(new UpdateMemberCommand(conversationId, user.id, memberId, input));
   }
 
   @ConversationResponseSwagger(ConversationOperation.removeMember)
   @ApiDecorator({ isPublic: false })
-  @Delete('/:conversationId/members/:removedUser')
+  @Delete('/:conversationId/members/:memberId')
   async removeMember(
     @UserDecorator() user: IUserToSign,
     @Param('conversationId') conversationId: UUID,
-    @Param('removedUser') removedUser: UUID,
+    @Param('memberId') memberId: UUID,
   ) {
-    return this.commandBus.execute(new RemoveFromConversationCommand(user.id, conversationId, removedUser));
+    return this.commandBus.execute(new RemoveFromConversationCommand(user.id, conversationId, memberId));
   }
 
   @ApiDecorator({ isPublic: false })
-  @Post('/:conversationId/owner/:newOwner')
+  @Post('/:conversationId/owner/:userId')
   async changeOwner(
     @UserDecorator() user: IUserToSign,
     @Param('conversationId') conversationId: UUID,
-    @Param('newOwner') newOwner: UUID,
+    @Param('userId') ownerId: UUID,
   ) {
-    return this.commandBus.execute(new ChangeOwnerCommand(user.id, conversationId, newOwner));
+    return this.commandBus.execute(new ChangeOwnerCommand(user.id, conversationId, ownerId));
   }
 }

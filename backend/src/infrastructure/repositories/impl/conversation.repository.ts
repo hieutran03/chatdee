@@ -1,53 +1,50 @@
-import { Get, Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UUID } from "crypto";
 import { IConversationRepository } from "src/domain/conversations/repositories/conversation-repository.interface";
 import { ConversationOrm } from "src/infrastructure/relational-database/orm/conversation.orm";
-import { ConversationTypeEnum } from "src/shared/common/enums/conversations.enum";
+import { ConversationTypeEnum } from "src/domain/conversations/enums/conversations.enum";
 import { In, Repository, SelectQueryBuilder } from "typeorm";
 import { ConversationAdapter } from "../adapter/conversation.adapter";
 import { Conversation } from "src/domain/conversations/conversation";
-import { IUserInConversationRepository, IUserInConversationRepositoryToken } from "src/domain/conversations/repositories/user-in-conversation-repository.interface";
 import { IAdapter } from "src/shared/common/interfaces/adapter.interface";
-import { User } from "src/domain/users/users";
-import { UserOrm } from "src/infrastructure/relational-database/orm/user.orm";
-import { UserAdapter } from "../adapter/user.adapter";
 import { UserInConversationOrm } from "src/infrastructure/relational-database/orm/user-in-conversation.orm";
 import { cursorPaginate } from "src/shared/core/utils/cursor-pagination.util";
 import { Direction } from "src/shared/common/enums/direction.enum";
 import { ConversationPaginationContract } from "src/domain/conversations/contracts/conversation-pagination.contract";
 import { TCursor } from "src/shared/common/types/cursor.type";
-import { ConversationExtraInfoContract } from "src/domain/conversations/contracts/conversation-extra-info.contract";
 import { ConversationDetailContract } from "src/domain/conversations/contracts/conversation-detail.contract";
 import { MemberContract } from "src/domain/conversations/contracts/member.contract";
 import { UserInConversationAdapter } from "../adapter/user-in-conversation.adapter";
 import { UserInConversation } from "src/domain/conversations/entities/user-in-conversation.entity";
+import { User } from "src/domain/users/users";
+import { UserOrm } from "src/infrastructure/relational-database/orm/user.orm";
+import { UserAdapter } from "../adapter/user.adapter";
+import { MemberPaginationContract } from "src/domain/conversations/contracts/member-pagination.contract";
 
 @Injectable()
 export class ConversationRepository implements IConversationRepository {
   constructor(
     @InjectRepository(ConversationOrm)
     private readonly conversationRepository: Repository<ConversationOrm>,
-    @InjectRepository(UserOrm)
-    private readonly userRepository: Repository<UserOrm>,
-    @Inject(IUserInConversationRepositoryToken) 
-    private readonly userInConversationRepository: IUserInConversationRepository,
-    @Inject(ConversationAdapter)
-    private readonly conversationAdapter: IAdapter<Conversation, ConversationOrm>,
+    @InjectRepository(UserInConversationOrm)
+    private readonly userInConversationRepository: Repository<UserInConversationOrm>,
     @Inject(UserAdapter)
     private readonly userAdapter: IAdapter<User, UserOrm>,
+    @Inject(ConversationAdapter)
+    private readonly conversationAdapter: IAdapter<Conversation, ConversationOrm>,
     @Inject(UserInConversationAdapter)
     private readonly userInConversationAdapter: IAdapter<UserInConversation, UserInConversationOrm>,
   ){}
 
-  async findWithCursorPagination(userId: UUID, limit: number, cursor: TCursor, direction: Direction): Promise<ConversationPaginationContract> {
+  async findWithCursorPagination(userId: UUID, limit: number, cursor: TCursor, direction: Direction = Direction.PREV): Promise<ConversationPaginationContract> {
     const qb = this.conversationRepository.createQueryBuilder('conversation').where(
       qb => {
       const subQuery = this.queryToFindConversationIdsOfUser(qb, userId);
       return 'conversation.id IN ' + subQuery;
     });
     
-    const result = await cursorPaginate(qb, limit, cursor, 'createdAt', direction);
+    const result = await cursorPaginate(qb, limit, cursor, qb.alias, 'updatedAt', direction);
     const conversations = result.data.map(item => this.conversationAdapter.toEntity(item));
     return {
       conversations,
@@ -66,20 +63,33 @@ export class ConversationRepository implements IConversationRepository {
     return conversationOrm ? this.conversationAdapter.toEntity(conversationOrm) : null;
   }
 
-  async findTopUsersAndTotal(conversationId: UUID, limit: number): Promise<ConversationExtraInfoContract> {
-    const userOrms = await this.userRepository.createQueryBuilder('user')
-      .innerJoin(UserInConversationOrm, 'uic', 'user.id = uic.userId')
-      .where('uic.conversationId = :conversationId', { conversationId })
-      .limit(limit)
-      .getMany();
-    const users = userOrms.map(orm => this.userAdapter.toEntity(orm));
-    const total = await this.countUsersOfConversation();
-   return { topUsers: users, totalUsers: total };
+  async findMembersWithCursorPagination(conversationId: UUID, limit: number, cursor: TCursor, direction?: Direction): Promise<MemberPaginationContract> {
+    const qb = this.userInConversationRepository.createQueryBuilder('uic')
+      .leftJoinAndSelect('uic.user', 'user')
+      .where('uic.conversationId = :conversationId', { conversationId });
+    const result = await cursorPaginate(qb, limit, cursor, 'user', 'createdAt', direction);
+    const members = result.data.map(orm => new MemberContract(this.userInConversationAdapter.toEntity(orm), this.userAdapter.toEntity(orm.user)));
+    return {
+      members,
+      limit,
+      previousCursor: result.previousCursor
+    };
   }
 
-  async countUsersOfConversation(): Promise<number> {
-    const count = await this.conversationRepository.createQueryBuilder('conversation')
-      .leftJoin('conversation.userInConversations', 'uic')
+  async findTopMembers(conversationId: UUID, limit: number): Promise<MemberContract[]> {
+    const uicOrms = await this.userInConversationRepository.createQueryBuilder('uic')
+      .leftJoinAndSelect('uic.user', 'user')
+      .where('uic.conversationId = :conversationId', { conversationId })
+      .limit(limit)
+      .orderBy('user.createdAt', 'DESC')
+      .getMany(); 
+    const members = uicOrms.map(orm => new MemberContract(this.userInConversationAdapter.toEntity(orm), this.userAdapter.toEntity(orm.user)));
+    return members;
+  }
+
+  async countMembers(conversationId: UUID): Promise<number> {
+    const count = await this.userInConversationRepository.createQueryBuilder('uic')
+      .where('uic.conversationId = :conversationId', { conversationId })
       .getCount();
     return count;
   }
@@ -93,22 +103,31 @@ export class ConversationRepository implements IConversationRepository {
   async findByIdDetails(id: UUID): Promise<ConversationDetailContract> {
     const conversationOrm = await this.conversationRepository.findOne({ 
       where: { id },
-      relations: ['userInConversations', 'owner', 'userInConversations.user']
+      relations: ['owner', 'userInConversations']
     });
     if(!conversationOrm)
       return null;
     const conversation = this.conversationAdapter.toEntity(conversationOrm);
-    const members = conversationOrm.userInConversations.map(uic => new MemberContract(
-      this.userInConversationAdapter.toEntity(uic),
-      this.userAdapter.toEntity(uic.user)
-    ))
+    const owner = new MemberContract(
+      this.userInConversationAdapter.toEntity(conversationOrm.userInConversations.find(uic => uic.userId === conversation.owner)), 
+      this.userAdapter.toEntity(conversationOrm.owner)
+    );
+    
     return new ConversationDetailContract(
       conversation, 
       conversationOrm.createdAt, 
       conversationOrm.updatedAt, 
-      members,
-      this.userAdapter.toEntity(conversationOrm.owner)
+      owner
     );
+  }
+
+  async findAllMember(conversationId: UUID): Promise<MemberContract[]> {
+    const uicOrms = await this.userInConversationRepository.createQueryBuilder('uic')
+      .leftJoinAndSelect('uic.user', 'user')
+      .where('uic.conversationId = :conversationId', { conversationId })
+      .getMany(); 
+    const members = uicOrms.map(orm => new MemberContract(this.userInConversationAdapter.toEntity(orm), this.userAdapter.toEntity(orm.user)));
+    return members;
   }
 
    async findById(id: UUID): Promise<Conversation> {
@@ -119,9 +138,8 @@ export class ConversationRepository implements IConversationRepository {
     return conversationOrm ? this.conversationAdapter.toEntity(conversationOrm) : null;
   }
 
-
   async findByUserId(userId: UUID): Promise<Conversation[]> {
-    const userInConversations = await this.userInConversationRepository.findAllConversationsOfUser(userId);
+    const userInConversations = await this.findAllConversationsOfUser(userId);
     const conversationIds = userInConversations.map(uic => uic.conversationId);
     if(conversationIds.length === 0) return [];
     const conversationOrms = await this.conversationRepository.find({ 
@@ -140,11 +158,18 @@ export class ConversationRepository implements IConversationRepository {
     await this.conversationRepository.delete(id);
   }
 
+  private async findAllConversationsOfUser(userId: UUID): Promise<UserInConversation[]> {
+    const userInConversationOrms = await this.userInConversationRepository.find({
+      where: { userId },
+    });
+    return userInConversationOrms.map(orm => this.userInConversationAdapter.toEntity(orm));
+  }
+
   private queryToFindConversationIdsOfUser(qb: SelectQueryBuilder<ConversationOrm>, userId: UUID){
     return qb.subQuery()
-        .select('uic.conversationId')
-        .from(UserInConversationOrm, 'uic')
-        .where('uic.userId = :userId', { userId })
-        .getQuery();
+      .select('uic.conversationId')
+      .from(UserInConversationOrm, 'uic')
+      .where('uic.userId = :userId', { userId })
+      .getQuery();
   }
 }

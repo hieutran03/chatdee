@@ -18,13 +18,13 @@ export class CursorBasedQueryDto extends PageQueryDto{
   @Transform(({ value }) => new Date(value))
   cursor?: TCursor = new Date();
 
-  @ApiProperty({
-    description: 'Direction for pagination',
-    enum: Direction,
-    example: Direction.PREV,
-    required: false,
-  })
-  @IsOptional()
-  @IsEnum(Direction)
-  direction?: Direction = Direction.PREV;
+  // @ApiProperty({
+  //   description: 'Direction for pagination',
+  //   enum: Direction,
+  //   example: Direction.PREV,
+  //   required: false,
+  // })
+  // @IsOptional()
+  // @IsEnum(Direction)
+  // direction?: Direction = Direction.PREV;
 }

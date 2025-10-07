@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, Param, Patch, Query } from "@nestjs/comm
 import { CommandBus, QueryBus } from "@nestjs/cqrs";
 import { UUID } from "crypto";
 import { IUserToSign } from "src/application/auth/interfaces/user-to-sign.interface";
+import { DeleteMessageCommand } from "src/application/messages/commands/delete-message.command";
 import { UpdateMessageCommand } from "src/application/messages/commands/update-message.command";
 import { FindMessagesInput } from "src/application/messages/dtos/find-messages.input";
 import { UpdateMessagesInput } from "src/application/messages/dtos/update-messages.input";
@@ -44,6 +45,6 @@ export class MessageController{
     @Param('messageId') messageId: UUID,
     @Param('conversationId') conversationId: UUID
   ){
-    return {};
+    return this.commandBus.execute(new DeleteMessageCommand(user.id, messageId, conversationId));
   }
 }

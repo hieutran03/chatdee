@@ -1,19 +1,19 @@
 import { Aggregate } from "../../shared/libs/ddd/aggregate";
 import { UserInConversation } from "./entities/user-in-conversation.entity";
-import { ConversationTypeEnum } from "src/shared/common/enums/conversations.enum";
+import { ConversationTypeEnum } from "src/domain/conversations/enums/conversations.enum";
 import { UUID } from "crypto";
 import { v4 as uuidv4 } from 'uuid';
 import { ConversationTitleVO } from "./value-objects/conversation-name.vo";
 import { UserAlreadyInConversationException } from "src/shared/core/exceptions/conflict/user-already-in-conversation.exception";
 import { AddToDirectConversationException } from "src/shared/core/exceptions/conflict/add-to-direct-conversation.exception";
-import { AddParticipantEvent } from "./events/add-participant.event";
-import { RemoveParticipantEvent } from "./events/remove-participant.event";
+import { AddMemberEvent } from "./events/add-member.event";
+import { RemoveMemberEvent } from "./events/remove-member.event";
 import { UpdateConversationContract } from "./contracts/update-conversation.contract";
 import { NotHavePermissionInConversationException } from "src/shared/core/exceptions/forbidden/not-have-permission-in-conversation.exception";
 import { UserNotInConversationException } from "src/shared/core/exceptions/forbidden/user-not-in-conversation.exception";
-import { ConversationRoleEnum } from "src/shared/common/enums/conversation-role.enum";
+import { ConversationRoleEnum } from "src/domain/conversations/enums/conversation-role.enum";
 import { DeleteConversationEvent } from "./events/delete-conversation.event";
-import { UpdateParticipantContract } from "./contracts/update-participant.contract";
+import { UpdateMemberContract } from "./contracts/update-member.contract";
 
 export class Conversation extends Aggregate<UUID>{
   private _title: ConversationTitleVO;
@@ -22,8 +22,11 @@ export class Conversation extends Aggregate<UUID>{
   private _avatar: string;
   private _userInConversations: UserInConversation[];
   private _owner: UUID;
+  private _lastMessage: string;
+  private _updatedAt: Date;
+  private _createdAt: Date;
 
-  protected constructor(id?: UUID, title?: string, type?: ConversationTypeEnum, theme?: string, avatar?: string, userInConversation?: UserInConversation[], owner?: UUID){
+  protected constructor(id?: UUID, title?: string, type?: ConversationTypeEnum, theme?: string, avatar?: string, userInConversation?: UserInConversation[], owner?: UUID, lastMessage?: string, createdAt?: Date, updatedAt?: Date){
     super(id);
     this.setTitle(title);
     this.setType(type);
@@ -31,10 +34,13 @@ export class Conversation extends Aggregate<UUID>{
     this.setAvatar(avatar);
     this.setUserInConversations(userInConversation);
     this.setOwner(owner);
+    this.setLastMessage(lastMessage);
+    this.setCreatedAt(createdAt);
+    this.setUpdatedAt(updatedAt);
   }
 
-  static assign(id?: UUID, title?: string, type?: ConversationTypeEnum, theme?: string, avatar?: string, userInConversations?: UserInConversation[], owner?: UUID){
-    const conversation = new Conversation(id, title, type, theme, avatar, userInConversations, owner);
+  static assign(id?: UUID, title?: string, type?: ConversationTypeEnum, theme?: string, avatar?: string, userInConversations?: UserInConversation[], owner?: UUID, lastMessage?: string, createdAt?: Date, updatedAt?: Date){
+    const conversation = new Conversation(id, title, type, theme, avatar, userInConversations, owner, lastMessage, createdAt, updatedAt);
     return conversation;
   }
 
@@ -52,6 +58,10 @@ export class Conversation extends Aggregate<UUID>{
     if(contract.theme) this.setTheme(contract.theme);
     if(contract.avatar) this.setAvatar(contract.avatar);
   }
+
+  addNewMessage(message: string){
+    this._lastMessage = message;
+  }
   
   requestToView(userId: UUID){
     if(!this.canViewConversation(userId)){
@@ -59,29 +69,29 @@ export class Conversation extends Aggregate<UUID>{
     }
   }
 
-  addParticipant(addedBy: UUID, addedUser: UUID){
-    if(!this.canAddParticipant(addedBy)){
+  addMember(addedBy: UUID, addedUser: UUID){
+    if(!this.canAddMember(addedBy)){
       throw new NotHavePermissionInConversationException(addedBy, this.id);
     }
     if(this.type === ConversationTypeEnum.DIRECT_CHAT){
       throw new AddToDirectConversationException(this.id, addedUser);
     }
-    if(this.isParticipant(addedUser)){
+    if(this.isMember(addedUser)){
       throw new UserAlreadyInConversationException(addedUser);
     }
     this._userInConversations.push(UserInConversation.create(this.id, addedUser));
-    this.addDomainEvent(new AddParticipantEvent(this.id, addedBy, addedUser));
+    this.addDomainEvent(new AddMemberEvent(this.id, addedBy, addedUser));
   }
 
-  removeParticipant(removedBy: UUID, removedUser: UUID){
-    if(!this.canRemoveParticipant(removedBy, removedUser)){
+  removeMember(removedBy: UUID, removedUser: UUID){
+    if(!this.canRemoveMember(removedBy, removedUser)){
       throw new NotHavePermissionInConversationException(removedBy, this.id);
     }
-    if(!this.isParticipant(removedUser)){
+    if(!this.isMember(removedUser)){
       throw new UserNotInConversationException(removedUser); //-> 409
     }
     this._userInConversations = this._userInConversations.filter(uic => uic.userId !== removedUser);
-    this.addDomainEvent(new RemoveParticipantEvent(this.id, removedBy, removedUser));
+    this.addDomainEvent(new RemoveMemberEvent(this.id, removedBy, removedUser));
   }
 
   requestToDelete(deletedBy: UUID){
@@ -91,36 +101,36 @@ export class Conversation extends Aggregate<UUID>{
     this.addDomainEvent(new DeleteConversationEvent(this.id));
   }
 
-  updateParticipant(updatedBy: UUID, updatedUser: UUID, contract: UpdateParticipantContract){
+  updateMember(updatedById: UUID, memberId: UUID, contract: UpdateMemberContract){
     if(contract.role){
-      this.updateParticipantRole(updatedBy, updatedUser, contract.role);
+      this.updateMemberRole(updatedById, memberId, contract.role);
     }
   }
 
-  changeOwner(updatedBy: UUID, newOwner: UUID){
-    if(!this.isOwner(updatedBy) || !this.isParticipant(newOwner)){
-      throw new NotHavePermissionInConversationException(updatedBy, this.id);
+  changeOwner(currentOwnerId: UUID, newOwnerId: UUID){
+    if(!this.isOwner(currentOwnerId) || !this.isMember(newOwnerId)){
+      throw new NotHavePermissionInConversationException(currentOwnerId, this.id);
     }
-    this._owner = newOwner;
+    this._owner = newOwnerId;
   }
 
-  private updateParticipantRole(updatedBy: UUID, updatedUser: UUID, newRole: ConversationRoleEnum){
-    if(!this.canUpdateRole(updatedBy, updatedUser, newRole)){
-      throw new NotHavePermissionInConversationException(updatedBy, this.id);
+  private updateMemberRole(updatedById: UUID, memberId: UUID, newRole: ConversationRoleEnum){
+    if(!this.canUpdateRole(updatedById, memberId, newRole)){
+      throw new NotHavePermissionInConversationException(updatedById, this.id);
     }
-    const userInConversation = this.userInConversations.find(uic => uic.userId === updatedUser);
+    const userInConversation = this.userInConversations.find(uic => uic.userId === memberId);
     userInConversation.setRole(newRole);
   }
 
-  private canViewConversation(userId: UUID){
-    return this.isParticipant(userId);
+  private canViewConversation(memberId: UUID){
+    return this.isMember(memberId);
   }
 
-  private canAddParticipant(addedBy: UUID){
-    return this.isParticipant(addedBy);
+  private canAddMember(addedBy: UUID){
+    return this.isMember(addedBy);
   }
 
-  private canRemoveParticipant(removedBy: UUID, removedUser: UUID){
+  private canRemoveMember(removedBy: UUID, removedUser: UUID){
     return (this.isOwner(removedBy) || this.isAdmin(removedBy)) && (!this.isOwner(removedUser) || !this.isAdmin(removedUser));
   }
 
@@ -130,19 +140,19 @@ export class Conversation extends Aggregate<UUID>{
   }
 
   private canDeleteConversation(deletedBy: UUID){
-    return this.isOwner(deletedBy) && this.isParticipant(deletedBy);
+    return this.isOwner(deletedBy) && this.isMember(deletedBy);
   }
   
-  private isParticipant(userId: UUID){
-    return this.userInConversations.some(uic => uic.userId === userId);
+  private isMember(memberId: UUID){
+    return this.userInConversations.some(uic => uic.userId === memberId);
   }
 
-  private isOwner(userId: UUID){
-    return this.owner === userId;
+  private isOwner(memberId: UUID){
+    return this.owner === memberId;
   }
 
-  private isAdmin(userId: UUID){
-    const userInConversation = this.userInConversations.find(uic => uic.userId === userId);
+  private isAdmin(memberId: UUID){
+    const userInConversation = this.userInConversations.find(uic => uic.userId === memberId);
     return userInConversation.role === ConversationRoleEnum.ADMIN;
   }
 
@@ -192,27 +202,43 @@ export class Conversation extends Aggregate<UUID>{
     return this._owner;
   }
 
-  setTitle(title: string){
+  get lastMessage(){
+    return this._lastMessage;
+  }
+
+  private setTitle(title: string){
     this._title = ConversationTitleVO.create(title);
   }
 
-  setType(type: ConversationTypeEnum){
+  private setType(type: ConversationTypeEnum){
     this._type = type;
   }
 
-  setTheme(theme: string){
+  private setTheme(theme: string){
     this._theme = theme;
   }
 
-  setAvatar(avatar: string){
+  private setAvatar(avatar: string){
     this._avatar = avatar;
-  }
+  } 
 
-  setUserInConversations(userInConversations: UserInConversation[]){
+  private setUserInConversations(userInConversations: UserInConversation[]){
     this._userInConversations = userInConversations;
   }
 
-  setOwner(owner: UUID){
+  private setOwner(owner: UUID){
     this._owner = owner;
+  }
+
+  private setLastMessage(lastMessage: string){
+    this._lastMessage = lastMessage;
+  }
+
+  private setCreatedAt(createdAt: Date){
+    this._createdAt = createdAt;
+  }
+
+  private setUpdatedAt(updatedAt: Date){
+    this._updatedAt = updatedAt;
   }
 }

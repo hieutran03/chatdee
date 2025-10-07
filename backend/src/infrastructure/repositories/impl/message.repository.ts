@@ -11,6 +11,10 @@ import { MessagePaginationContract } from "src/domain/messages/contracts/message
 import { Direction } from "src/shared/common/enums/direction.enum";
 import { TCursor } from "src/shared/common/types/cursor.type";
 import { cursorPaginate } from "src/shared/core/utils/cursor-pagination.util";
+import { MessageDetailContract } from "src/domain/messages/contracts/message-detail.contract";
+import { UserAdapter } from "../adapter/user.adapter";
+import { UserOrm } from "src/infrastructure/relational-database/orm/user.orm";
+import { User } from "src/domain/users/users";
 
 
 export class MessageRepository implements IMessageRepository{
@@ -19,32 +23,44 @@ export class MessageRepository implements IMessageRepository{
     private readonly messageAdapter: IAdapter<Message, MessageOrm>,
 
     @InjectRepository(MessageOrm)
-    private readonly messageRepository: Repository<MessageOrm>
+    private readonly messageRepository: Repository<MessageOrm>,
+
+    @Inject(UserAdapter)
+    private readonly userAdapter: IAdapter<User, UserOrm>
   ){}
 
-  async findWithCursorPagination(conversationId: UUID, limit: number, cursor: TCursor, direction?: Direction): Promise<MessagePaginationContract> {
+  async findWithCursorPagination(conversationId: UUID, limit: number, cursor: TCursor, direction: Direction = Direction.PREV): Promise<MessagePaginationContract> {
     const qb = this.messageRepository.createQueryBuilder('message')
       .where('message.conversationId = :conversationId', { conversationId })
+      .leftJoinAndSelect('message.user', 'user')
 
-    const result = await cursorPaginate(qb, limit, cursor, 'createdAt', direction);
-
-    const messages = result.data.map(item => this.messageAdapter.toEntity(item));
+    const result = await cursorPaginate(qb, limit, cursor, qb.alias, 'createdAt', direction);
+    const messageDetails = result.data.map(item => new MessageDetailContract(
+      this.messageAdapter.toEntity(item), 
+      this.userAdapter.toEntity(item.user)
+    ));
 
     return {
-      messages,
+      messages: messageDetails,
       limit,
       nextCursor: result.nextCursor,
       previousCursor: result.previousCursor
     };
   }
 
-  async save(message: Message): Promise<void>{
+  async save(message: Message): Promise<Message>{
     const messageOrm = this.messageAdapter.toOrm(message);
-    await this.messageRepository.save(messageOrm);
+    const savedMessage = await this.messageRepository.save(messageOrm);
+    return this.messageAdapter.toEntity(savedMessage);
   }
 
   async findById(id: UUID): Promise<Message> {
     const messageOrm = await this.messageRepository.findOneBy({ id });
+    if(!messageOrm) return null;
     return this.messageAdapter.toEntity(messageOrm);
+  }
+
+  async delete(id: UUID): Promise<void> {
+    await this.messageRepository.delete({ id });
   }
 }

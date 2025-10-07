@@ -1,4 +1,4 @@
-import { ConversationTypeEnum } from "../../../shared/common/enums/conversations.enum";
+import { ConversationTypeEnum } from "../../../domain/conversations/enums/conversations.enum";
 import { Column, CreateDateColumn, UpdateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, Relation } from "typeorm";
 import { AbstractOrm } from "../abstractions/asbtract.orm";
 import { UUID } from "crypto";
@@ -49,6 +49,12 @@ export class ConversationOrm extends AbstractOrm<ConversationOrm>{
     type: 'uuid'
   })
   ownerId: Relation<UserOrm>['id'];
+
+  @Column({
+    type: 'text',
+    nullable: true
+  })
+  lastMessage: string;
 
   @CreateDateColumn({ name: 'created_at', nullable: true })
   createdAt: Date;

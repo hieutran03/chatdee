@@ -6,11 +6,8 @@ export class MemberContract extends UserInConversation{
     super(userInConversation.conversationId, userInConversation.userId, userInConversation.role);
     this.name = user.name;
     this.avatar = user.avatar;
-    this.email = user.email;
-    this.bornYear = user.bornYear;
+
   }
   name: string;
   avatar: string;
-  email: string;
-  bornYear: number;
 }

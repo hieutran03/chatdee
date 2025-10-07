@@ -11,7 +11,7 @@ import { ConversationQueryHandlers } from "./conversations/queries/handlers";
 import { ChatService } from "./chats/services/chat.service";
 import { MessageService } from "./messages/services/message.service";
 import { MessageQueryHandlers } from "./messages/queries";
-import { ChatEventsHandlers } from "./chats/events";
+import { ChatEventsHandlers } from "./chats/event-handlers";
 import { MessageCommandHandlers } from "./messages/commands/handlers";
 
 

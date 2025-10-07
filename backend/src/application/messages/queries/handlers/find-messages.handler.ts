@@ -16,6 +16,7 @@ export class FindMessagesHandler implements ICommandHandler<FindMessagesQuery> {
     const result = await this.messageService.getMessages(userId,conversationId, input);
     if(result instanceof Error)
       return responseErrorResult(result);
+    console.log('FindMessagesHandler - result: ', result.messages[0].sender);
     const output = new FindMessagesOutput(result);
     return SuccessResult.responseOk(output);
   }

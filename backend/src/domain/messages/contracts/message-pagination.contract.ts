@@ -1,8 +1,8 @@
 import { TCursor } from "src/shared/common/types/cursor.type";
-import { Message } from "../message";
+import { MessageDetailContract } from "./message-detail.contract";
 
 export type MessagePaginationContract = {
-  messages: Message[];
+  messages: MessageDetailContract[];
   limit: number;
   nextCursor?: TCursor;
   previousCursor?: TCursor;

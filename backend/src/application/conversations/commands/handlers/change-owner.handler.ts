@@ -12,8 +12,8 @@ export class ChangeOwnerHandler implements ICommandHandler<ChangeOwnerCommand>{
   
   async execute(command: ChangeOwnerCommand) {
     try {
-      const { conversationId, changedBy, newOwner } = command;
-      await this.conversationService.changeOwner(conversationId, changedBy, newOwner);
+      const { conversationId, currentOwnerId, newOwnerId } = command;
+      await this.conversationService.changeOwner(conversationId, currentOwnerId, newOwnerId);
       return SuccessResult.responseUpdated();
     } catch (error) {
       return responseErrorResult(error);

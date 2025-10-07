@@ -1,11 +1,10 @@
 import { QueryHandler } from "@nestjs/cqrs";
 import { FindConversationsQuery } from "../find-conversations.query";
 import { ConversationService } from "../../services/conversation.service";
-import { FindConversationsOutput } from "../../dtos/find-conversation.output";
+import { FindConversationsOutput } from "../../dtos/find-conversations.output";
 import { SuccessResult } from "src/shared/libs/result";
-import { ConversationTypeEnum } from "src/shared/common/enums/conversations.enum";
-import { ConversationExtraInfoContract } from "src/domain/conversations/contracts/conversation-extra-info.contract";
 import { UUID } from "crypto";
+import { MemberContract } from "src/domain/conversations/contracts/member.contract";
 
 @QueryHandler(FindConversationsQuery)
 export class FindConversationsHandler{
@@ -13,14 +12,20 @@ export class FindConversationsHandler{
 
   async execute({ userId, query }: FindConversationsQuery): Promise<any> {
     const result = await this.conversationService.findConversations(userId, query);
-    const extraInfoMap = new Map<UUID, ConversationExtraInfoContract>();
-    for(const conversation of result.conversations){
-      if(conversation.type == ConversationTypeEnum.GROUP_CHAT && (!conversation.title || !conversation.avatar)){
-        const extraInfo = await this.conversationService.getConversationExtraInfo(conversation, 3);
-        if(extraInfo) extraInfoMap.set(conversation.id, extraInfo);
-      }
+    const topMembersMap = new Map<UUID, MemberContract[]>();
+    const totalMembersMap = new Map<UUID, number>();
+    if (query.include?.includes("topMembers"))
+      await Promise.all(result.conversations.map(async (conversation) => {
+        const topMembers = await this.conversationService.getTopMembers(conversation.id, 3);
+        topMembersMap.set(conversation.id, topMembers);
+      }));
+    if (query.include?.includes("totalMembers")) {
+      await Promise.all(result.conversations.map(async (conversation) => {
+        const totalMembers = await this.conversationService.getTotalMembers(conversation.id);
+        totalMembersMap.set(conversation.id, totalMembers);
+      }));
     }
-    const output = new FindConversationsOutput(result, extraInfoMap);
+    const output = new FindConversationsOutput(result, topMembersMap, totalMembersMap);
     return SuccessResult.responseOk(output);
   }
 }

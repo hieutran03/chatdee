@@ -10,16 +10,18 @@ export async function cursorPaginate<T>(
   qb: SelectQueryBuilder<T>,
   limit: number,
   cursor: TCursor,
+  aliasCursorField: string = qb.alias,
   cursorField: string = 'createdAt',
   direction: Direction = Direction.PREV,
 ): Promise<TCursorPaginationResult<T>> {
   const take = limit;
 
   // 1. Apply cursor condition
-  applyCursorCondition(qb, cursor, cursorField, direction);
+  applyCursorCondition(qb, cursor, aliasCursorField,cursorField, direction);
 
   // 2. Get data
   qb.take(take + 1);
+
   let items = await qb.getMany();
 
   // 3. Slice excess items
@@ -48,20 +50,21 @@ export async function cursorPaginate<T>(
 function applyCursorCondition<T>(
   qb: SelectQueryBuilder<T>,
   cursor: TCursor,
+  aliasCursorField: string = qb.alias,
   cursorField: string,
   direction: Direction,
 ): void {
   if (!cursor) {
-    qb.orderBy(`${qb.alias}.${cursorField}`, direction === Direction.NEXT ? 'ASC' : 'DESC');
+    qb.orderBy(`${aliasCursorField }.${cursorField}`, direction === Direction.NEXT ? 'ASC' : 'DESC');
     return;
   }
 
   if (direction === Direction.NEXT) {
-    qb.andWhere(`${qb.alias}.${cursorField} > :cursor`, { cursor });
-    qb.orderBy(`${qb.alias}.${cursorField}`, 'ASC');
+    qb.andWhere(`${aliasCursorField}.${cursorField} > :cursor`, { cursor });
+    qb.orderBy(`${aliasCursorField}.${cursorField}`, 'ASC');
   } else {
-    qb.andWhere(`${qb.alias}.${cursorField} < :cursor`, { cursor });
-    qb.orderBy(`${qb.alias}.${cursorField}`, 'DESC');
+    qb.andWhere(`${aliasCursorField}.${cursorField} < :cursor`, { cursor });
+    qb.orderBy(`${aliasCursorField}.${cursorField}`, 'DESC');
   }
 }
 
