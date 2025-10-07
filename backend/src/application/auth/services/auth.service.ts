@@ -4,7 +4,7 @@ import {
   IUserRepositoryToken,
 } from 'src/domain/users/repositories/user-repository.interface';
 import { Inject } from '@nestjs/common';
-import { AppJwtService } from 'src/infrastructure/utils/services/app-jwt.service';
+import { AppJwtService } from 'src/infrastructure/app-jwt/services/app-jwt.service';
 import { IUserToSign } from '../interfaces/user-to-sign.interface';
 import { User } from 'src/domain/users/users';
 import { comparePassword } from 'src/shared/core/utils/password.util';
