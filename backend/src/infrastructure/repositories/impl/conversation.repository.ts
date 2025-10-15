@@ -20,7 +20,6 @@ import { UserInConversation } from "src/domain/conversations/entities/user-in-co
 import { User } from "src/domain/users/users";
 import { UserOrm } from "src/infrastructure/relational-database/orm/user.orm";
 import { UserAdapter } from "../adapter/user.adapter";
-import { MemberPaginationContract } from "src/domain/conversations/contracts/member-pagination.contract";
 
 @Injectable()
 export class ConversationRepository implements IConversationRepository {
@@ -63,17 +62,12 @@ export class ConversationRepository implements IConversationRepository {
     return conversationOrm ? this.conversationAdapter.toEntity(conversationOrm) : null;
   }
 
-  async findMembersWithCursorPagination(conversationId: UUID, limit: number, cursor: TCursor, direction?: Direction): Promise<MemberPaginationContract> {
-    const qb = this.userInConversationRepository.createQueryBuilder('uic')
+  async findMembers(conversationId: UUID): Promise<MemberContract[]> {
+    const result = await this.userInConversationRepository.createQueryBuilder('uic')
       .leftJoinAndSelect('uic.user', 'user')
-      .where('uic.conversationId = :conversationId', { conversationId });
-    const result = await cursorPaginate(qb, limit, cursor, 'user', 'createdAt', direction);
-    const members = result.data.map(orm => new MemberContract(this.userInConversationAdapter.toEntity(orm), this.userAdapter.toEntity(orm.user)));
-    return {
-      members,
-      limit,
-      previousCursor: result.previousCursor
-    };
+      .where('uic.conversationId = :conversationId', { conversationId })
+      .getMany();
+    return result.map(orm => new MemberContract(this.userInConversationAdapter.toEntity(orm), this.userAdapter.toEntity(orm.user)));
   }
 
   async findTopMembers(conversationId: UUID, limit: number): Promise<MemberContract[]> {
@@ -115,8 +109,6 @@ export class ConversationRepository implements IConversationRepository {
     
     return new ConversationDetailContract(
       conversation, 
-      conversationOrm.createdAt, 
-      conversationOrm.updatedAt, 
       owner
     );
   }

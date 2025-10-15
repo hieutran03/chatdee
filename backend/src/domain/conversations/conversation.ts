@@ -206,6 +206,14 @@ export class Conversation extends Aggregate<UUID>{
     return this._lastMessage;
   }
 
+  get createdAt(){
+    return this._createdAt;
+  }
+
+  get updatedAt(){
+    return this._updatedAt;
+  }
+
   private setTitle(title: string){
     this._title = ConversationTitleVO.create(title);
   }

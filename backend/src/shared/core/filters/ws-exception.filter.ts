@@ -10,7 +10,7 @@ export class WebSocketExceptionFilter {
     const client = ctx.getClient();
     const pattern = ctx.getPattern();
     const data = ctx.getData();
-
+  
     const errorResult = responseErrorResult(exception);
 
     client.emit('exception', {

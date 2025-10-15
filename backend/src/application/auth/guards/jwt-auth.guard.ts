@@ -13,6 +13,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
+    if (!context.getType().includes('http')) {
+      return true;
+    }
     const isPublic = this.reflector.getAllAndOverride<boolean>(
       ApiMetadata.IS_PUBLIC,
       [context.getHandler(), context.getClass()],

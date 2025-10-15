@@ -13,6 +13,9 @@ export class ResponseStatusInterceptor implements NestInterceptor {
 
   
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    if(context.getType() !== 'http'){
+      return next.handle();
+    }
     const environment = process.env.NODE_ENV || 'development';
 
     const res = context.switchToHttp().getResponse<Response>();

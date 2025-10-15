@@ -1,22 +1,22 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { ConversationDomainService } from "src/domain/conversations/domain-service/create-conversation.domain-service";
+import { ConversationDomainService } from "src/domain/conversations/domain-service/conversation.domain-service";
 import { CreateConversationInput } from "../dtos/create-conversation.input";
 import { UUID } from "crypto";
 import { Conversation } from "src/domain/conversations/conversation";
-import { IConversationRepository, IConversationRepositoryToken } from "src/domain/conversations/repositories/conversation-repository.interface";
+import { IConversationRepository } from "src/domain/conversations/repositories/conversation-repository.interface";
 import { ConversationNotFoundException } from "src/shared/core/exceptions/not-found/conversation-not-found.exception";
 import { FindConversationsInput } from "../dtos/find-conversations.input";
 import { EventBus } from "@nestjs/cqrs";
 import { UpdateConversationInput } from "../dtos/update-conversation.input";
 import { publishDomainEvents } from "src/shared/core/utils/domain-event.util";
 import { UpdateMemberInput } from "../dtos/update-member.input";
-import { FindMembersInput } from "../dtos/find-members.input";
+import { IConversationRepositoryCacheToken } from "../cache/conversation-repository-cache.interface";
 
 @Injectable()
 export class ConversationService{
   constructor(
     private conversationDomainService: ConversationDomainService,
-    @Inject(IConversationRepositoryToken) private conversationRepository: IConversationRepository,
+    @Inject(IConversationRepositoryCacheToken) private conversationRepository: IConversationRepository,
     private readonly eventBus: EventBus
   ){}
 
@@ -25,11 +25,11 @@ export class ConversationService{
     return this.conversationRepository.findWithCursorPagination(userId, query.limit, query.cursor);
   }
 
-  async getMembers(conversationId: UUID, query: FindMembersInput){
+  async getMembers(conversationId: UUID){
     const conversation = await this.conversationRepository.findById(conversationId);
     if(!conversation)
       return new ConversationNotFoundException(conversationId);
-    return this.conversationRepository.findMembersWithCursorPagination(conversationId, query.limit, query.cursor);
+    return this.conversationRepository.findMembers(conversationId);
   }
 
   async getTopMembers(conversationId: UUID, limit: number){
@@ -79,9 +79,7 @@ export class ConversationService{
 
 
   async addToConversation(addedById: UUID, conversationId: UUID, memberId: UUID){
-    const conversation = await this.findConversation(conversationId);
-    conversation.addMember(addedById, memberId);
-    await this.conversationRepository.save(conversation);
+    const conversation = await this.conversationDomainService.addMemberToConversation(addedById, conversationId, memberId);
     publishDomainEvents(this.eventBus, conversation);
   }
 

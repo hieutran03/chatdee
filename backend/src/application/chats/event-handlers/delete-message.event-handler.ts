@@ -1,17 +1,17 @@
 import { Inject } from "@nestjs/common";
 import { EventsHandler, IEventHandler } from "@nestjs/cqrs";
 import { DeleteMessageEvent } from "src/domain/messages/events/delete-message.event";
-import { IChatNotifier, IChatNotifierToken } from "../notifiers/chat-notifier.interface";
 import { ChatActionEnum } from "src/shared/common/enums/chat-action.enum";
 import { MessageTypeEnum } from "src/infrastructure/relational-database/orm/message.orm";
 import { Message } from "src/domain/messages/message";
 import { MessageOutput } from "src/application/messages/dtos/message.output";
+import { IChatWebsocket, IChatWebsocketToken } from "../websocket/chat-websocket.interface";
 
 @EventsHandler(DeleteMessageEvent)
 export class  DeleteMessageEventHandler implements IEventHandler<DeleteMessageEvent>{
   constructor(
-    @Inject(IChatNotifierToken) 
-    private readonly chatNotifier: IChatNotifier
+    @Inject(IChatWebsocketToken)
+    private readonly chatWebsocket: IChatWebsocket,
   ){}
 
   async handle(event: DeleteMessageEvent): Promise<void> {
@@ -23,6 +23,6 @@ export class  DeleteMessageEventHandler implements IEventHandler<DeleteMessageEv
       MessageTypeEnum.NOTIFICATION,
       ChatActionEnum.DELETE_MESSAGE
     );
-    this.chatNotifier.notify(new MessageOutput(message));
+    this.chatWebsocket.send(new MessageOutput(message));
   }
 }

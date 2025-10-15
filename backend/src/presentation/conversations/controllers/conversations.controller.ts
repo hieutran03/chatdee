@@ -31,7 +31,6 @@ import { UpdateMemberInput } from 'src/application/conversations/dtos/update-mem
 import { UpdateMemberCommand } from 'src/application/conversations/commands/update-member.command';
 import { ChangeOwnerCommand } from 'src/application/conversations/commands/change-owner.command';
 import { FindMembersQuery } from 'src/application/conversations/queries/find-members.query';
-import { FindMembersInput } from 'src/application/conversations/dtos/find-members.input';
 
 @Controller('conversations')
 export class ConversationController {
@@ -86,8 +85,8 @@ export class ConversationController {
 
   @ApiDecorator({ isPublic: false })
   @Get('/:conversationId/members')
-  async getMembers(@Param('conversationId') conversationId: UUID, @Query() query: FindMembersInput) {
-    return this.queryBus.execute(new FindMembersQuery(conversationId, query));
+  async getMembers(@Param('conversationId') conversationId: UUID) {
+    return this.queryBus.execute(new FindMembersQuery(conversationId));
   }
 
   @ConversationResponseSwagger(ConversationOperation.addMember)

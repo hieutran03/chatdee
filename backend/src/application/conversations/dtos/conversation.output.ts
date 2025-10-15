@@ -30,6 +30,9 @@ export class ConversationOutput {
 
   @ApiProperty({ required: false })
   updatedAt?: Date;
+
+  @ApiProperty({ required: false })
+  lastMessage?: string;
   
   @ApiProperty({
     type: () => [MemberOutput],
@@ -64,6 +67,7 @@ export class ConversationOutput {
     this.type = conversation.type;
     this.theme = conversation.theme;
     this.avatar = conversation.avatar;
+    this.lastMessage = conversation.lastMessage;
     if(conversation instanceof ConversationDetailContract){
       this.owner = new MemberOutput(conversation.ownerMember);
       // this.members = conversation.members

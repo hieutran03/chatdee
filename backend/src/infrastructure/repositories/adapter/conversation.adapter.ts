@@ -20,7 +20,10 @@ export class ConversationAdapter implements IAdapter<Conversation, ConversationO
       orm.theme,
       orm.avatar,
       userInConversations,
-      orm.ownerId
+      orm.ownerId,
+      orm.lastMessage,
+      orm.createdAt,
+      orm.updatedAt
     )
   }
   toOrm(entity: Conversation): ConversationOrm {
@@ -31,7 +34,10 @@ export class ConversationAdapter implements IAdapter<Conversation, ConversationO
       theme: entity?.theme,
       avatar: entity?.avatar,
       userInConversations: entity?.userInConversations?.map(uic => this.userInConversationAdapter.toOrm(uic)),
-      ownerId: entity?.owner
+      ownerId: entity?.owner,
+      lastMessage: entity?.lastMessage,
+      createdAt: entity?.createdAt,
+      updatedAt: entity?.updatedAt
     })
   }
 }

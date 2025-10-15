@@ -8,8 +8,8 @@ import { AppConfigModule } from './app-config/app-config.module';
 import { AppJwtModule } from './app-jwt/app-jwt.module';
 import { PassportModule } from '@nestjs/passport/dist/passport.module';
 import { WebsocketModule } from './websocket/websocket.module';
-import { NotifierModule } from './notifier/notifier.module';
-import { RabbitmqModule } from './rabbitmq/rabbitmq.module';
+import { MessageQueueModule } from './message-queue/message-queue.module';
+import { CacheModule } from './cache/cache.module';
 
 @Global()
 @Module({
@@ -22,8 +22,8 @@ import { RabbitmqModule } from './rabbitmq/rabbitmq.module';
     AppJwtModule,
     PassportModule,
     WebsocketModule,
-    NotifierModule,
-    RabbitmqModule
+    MessageQueueModule,
+    CacheModule
   ],
   exports: [
     TypeOrmModule,
@@ -34,8 +34,8 @@ import { RabbitmqModule } from './rabbitmq/rabbitmq.module';
     AppJwtModule,
     PassportModule,
     WebsocketModule,
-    NotifierModule,
-    RabbitmqModule
+    MessageQueueModule,
+    CacheModule
   ],
 })
 export class InfrastructureModule {}

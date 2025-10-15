@@ -6,6 +6,7 @@ import { MinimumUsersInConversationException } from "src/shared/core/exceptions/
 import { DirectConversationAlreadyExistsException } from "src/shared/core/exceptions/conflict/direct-conversation-already-exist.exception";
 import { DirectConversationNotFoundException } from "src/shared/core/exceptions/not-found/direction-not-found.exception";
 import { AddInvalidUserToConversationException } from "src/shared/core/exceptions/bad-request/add-invallid-user-to-conversation.exception";
+import { ConversationNotFoundException } from "src/shared/core/exceptions/not-found/conversation-not-found.exception";
 
 export class ConversationDomainService {
   constructor(
@@ -29,6 +30,16 @@ export class ConversationDomainService {
     if (!existingConversation) 
       throw new DirectConversationNotFoundException(firstUserId, secondUserId);
     return existingConversation.id;
+  }
+
+  async addMemberToConversation(addedById: UUID,conversationId: UUID, userId: UUID) {
+    await this.validateUsersExist([userId]);
+    const conversation = await this.conversationRepository.findById(conversationId);
+    if (!conversation) 
+      throw new ConversationNotFoundException(conversationId);
+    conversation.addMember(addedById, userId);
+    await this.conversationRepository.save(conversation);
+    return conversation;
   }
   
   private async validateUsersExist(userIds: UUID[]) {

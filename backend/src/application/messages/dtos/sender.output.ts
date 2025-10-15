@@ -1,7 +1,8 @@
+import { UUID } from "crypto";
 import { User } from "src/domain/users/users";
 
 export class SenderOutput{
-  id: string;
+  id: UUID;
   name: string;
   avatar: string;
   constructor(sender: User){
